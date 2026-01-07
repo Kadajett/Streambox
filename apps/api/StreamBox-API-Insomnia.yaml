@@ -1,0 +1,1185 @@
+type: collection.insomnia.rest/5.0
+name: StreamBox API
+meta:
+  id: wrk_streambox_api_collection
+  created: 1736121007524
+  modified: 1736121007524
+  description: "Complete API collection for StreamBox video streaming platform - includes all endpoints"
+collection:
+  # =====================
+  # Health Folder
+  # =====================
+  - name: Health
+    meta:
+      id: fld_health
+      created: 1736121007524
+      modified: 1736121007524
+    children:
+      - url: "{{ _.baseUrl }}/"
+        name: Health Check
+        meta:
+          id: req_health_check
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Check API health status"
+          sortKey: -1736121007524
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # =====================
+  # Auth Folder
+  # =====================
+  - name: Auth
+    meta:
+      id: fld_auth
+      created: 1736121007524
+      modified: 1736121007524
+    children:
+      - url: "{{ _.baseUrl }}/auth/register"
+        name: Register User
+        meta:
+          id: req_auth_register
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Register a new user account"
+          sortKey: -1736121007524
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "testuser@example.com",
+              "username": "testuser123",
+              "password": "SecurePass123!",
+              "displayName": "Test User"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/auth/login"
+        name: Login
+        meta:
+          id: req_auth_login
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Login with email and password"
+          sortKey: -1736121007525
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "email": "testuser@example.com",
+              "password": "SecurePass123!"
+            }
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/auth/me"
+        name: Get Current User
+        meta:
+          id: req_auth_me
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get authenticated user profile"
+          sortKey: -1736121007526
+        method: GET
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/auth/logout"
+        name: Logout
+        meta:
+          id: req_auth_logout
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Logout current user"
+          sortKey: -1736121007527
+        method: POST
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # =====================
+  # Users Folder
+  # =====================
+  - name: Users
+    meta:
+      id: fld_users
+      created: 1736121007524
+      modified: 1736121007524
+    children:
+      - url: "{{ _.baseUrl }}/api/users/{{ _.userId }}"
+        name: Get User by ID
+        meta:
+          id: req_users_get_by_id
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get user details by ID"
+          sortKey: -1736121007524
+        method: GET
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/users/{{ _.userId }}"
+        name: Update User
+        meta:
+          id: req_users_update
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Update user profile"
+          sortKey: -1736121007525
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "displayName": "Updated Display Name",
+              "avatarUrl": "https://example.com/avatar.jpg"
+            }
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # =====================
+  # Channels Folder
+  # =====================
+  - name: Channels
+    meta:
+      id: fld_channels
+      created: 1736121007524
+      modified: 1736121007524
+    children:
+      - url: "{{ _.baseUrl }}/channels"
+        name: Create Channel
+        meta:
+          id: req_channels_create
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Create a new channel"
+          sortKey: -1736121007524
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "My Awesome Channel",
+              "handle": "myawesomechannel",
+              "description": "This is my channel for awesome content!"
+            }
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/channels/mine"
+        name: Get My Channels
+        meta:
+          id: req_channels_mine
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get channels owned by current user"
+          sortKey: -1736121007525
+        method: GET
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/channels/{{ _.channelHandle }}"
+        name: Get Channel by Handle
+        meta:
+          id: req_channels_get_by_handle
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get channel details by handle"
+          sortKey: -1736121007526
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/channels"
+        name: List All Channels
+        meta:
+          id: req_channels_list_all
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "List all channels with pagination"
+          sortKey: -1736121007527
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: limit
+            value: "20"
+        headers:
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/channels/{{ _.channelId }}"
+        name: Update Channel
+        meta:
+          id: req_channels_update
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Update channel details"
+          sortKey: -1736121007528
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "name": "Updated Channel Name",
+              "description": "Updated description for my channel"
+            }
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/channels/{{ _.channelId }}"
+        name: Delete Channel
+        meta:
+          id: req_channels_delete
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Delete a channel"
+          sortKey: -1736121007529
+        method: DELETE
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # =====================
+  # Videos Folder
+  # =====================
+  - name: Videos
+    meta:
+      id: fld_videos
+      created: 1736121007524
+      modified: 1736121007524
+    children:
+      - url: "{{ _.baseUrl }}/channels/{{ _.channelId }}/videos"
+        name: Upload Video
+        meta:
+          id: req_videos_upload
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Upload a new video to a channel"
+          sortKey: -1736121007524
+        method: POST
+        body:
+          mimeType: multipart/form-data
+          params:
+            - name: file
+              type: file
+              fileName: ""
+              value: ""
+            - name: title
+              value: "My First Video"
+            - name: description
+              value: "This is the description of my first uploaded video."
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/videos/{{ _.videoId }}"
+        name: Get Video by ID
+        meta:
+          id: req_videos_get_by_id
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get video details by ID"
+          sortKey: -1736121007525
+        method: GET
+        headers:
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/videos/{{ _.videoId }}/status"
+        name: Get Video Processing Status
+        meta:
+          id: req_videos_status
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get video processing/transcoding status"
+          sortKey: -1736121007526
+        method: GET
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/channels/{{ _.channelId }}/videos"
+        name: Get Channel Videos
+        meta:
+          id: req_videos_channel_list
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get all videos for a channel"
+          sortKey: -1736121007527
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: limit
+            value: "20"
+        headers:
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/videos"
+        name: List All Videos
+        meta:
+          id: req_videos_list_all
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "List all videos with pagination and filters"
+          sortKey: -1736121007528
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: limit
+            value: "20"
+          - name: status
+            value: ready
+            disabled: true
+        headers:
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/videos/{{ _.videoId }}"
+        name: Update Video
+        meta:
+          id: req_videos_update
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Update video metadata"
+          sortKey: -1736121007529
+        method: PATCH
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "title": "Updated Video Title",
+              "description": "Updated video description with more details."
+            }
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/videos/{{ _.videoId }}"
+        name: Delete Video
+        meta:
+          id: req_videos_delete
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Delete a video"
+          sortKey: -1736121007530
+        method: DELETE
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # =====================
+  # Engagement Folder
+  # =====================
+  - name: Engagement
+    meta:
+      id: fld_engagement
+      created: 1736121007524
+      modified: 1736121007524
+    children:
+      - url: "{{ _.baseUrl }}/api/videos/{{ _.videoId }}/like"
+        name: Like Video
+        meta:
+          id: req_engagement_like
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Like a video"
+          sortKey: -1736121007524
+        method: POST
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/videos/{{ _.videoId }}/dislike"
+        name: Dislike Video
+        meta:
+          id: req_engagement_dislike
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Dislike a video"
+          sortKey: -1736121007525
+        method: POST
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/videos/{{ _.videoId }}/reaction"
+        name: Remove Reaction
+        meta:
+          id: req_engagement_remove_reaction
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Remove like/dislike reaction from video"
+          sortKey: -1736121007526
+        method: DELETE
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/videos/{{ _.videoId }}/comments"
+        name: Get Video Comments
+        meta:
+          id: req_engagement_get_comments
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get comments for a video"
+          sortKey: -1736121007527
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: limit
+            value: "20"
+        headers:
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/videos/{{ _.videoId }}/comments"
+        name: Add Comment
+        meta:
+          id: req_engagement_add_comment
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Add a comment to a video"
+          sortKey: -1736121007528
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "content": "This is a great video! Thanks for sharing."
+            }
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/videos/{{ _.videoId }}/comments"
+        name: Reply to Comment
+        meta:
+          id: req_engagement_reply_comment
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Reply to an existing comment"
+          sortKey: -1736121007529
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "content": "Thanks for your comment!",
+              "parentId": "{{ _.commentId }}"
+            }
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/comments/{{ _.commentId }}"
+        name: Delete Comment
+        meta:
+          id: req_engagement_delete_comment
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Delete a comment"
+          sortKey: -1736121007530
+        method: DELETE
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # =====================
+  # Subscriptions Folder
+  # =====================
+  - name: Subscriptions
+    meta:
+      id: fld_subscriptions
+      created: 1736121007524
+      modified: 1736121007524
+    children:
+      - url: "{{ _.baseUrl }}/api/channels/{{ _.channelId }}/subscribe"
+        name: Subscribe to Channel
+        meta:
+          id: req_subscriptions_subscribe
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Subscribe to a channel"
+          sortKey: -1736121007524
+        method: POST
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/channels/{{ _.channelId }}/subscribe"
+        name: Unsubscribe from Channel
+        meta:
+          id: req_subscriptions_unsubscribe
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Unsubscribe from a channel"
+          sortKey: -1736121007525
+        method: DELETE
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/subscriptions"
+        name: Get My Subscriptions
+        meta:
+          id: req_subscriptions_list
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get all subscribed channels"
+          sortKey: -1736121007526
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: limit
+            value: "20"
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/feed"
+        name: Get Subscription Feed
+        meta:
+          id: req_subscriptions_feed
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get video feed from subscribed channels"
+          sortKey: -1736121007527
+        method: GET
+        parameters:
+          - name: cursor
+            value: ""
+            disabled: true
+          - name: limit
+            value: "20"
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # =====================
+  # Admin Folder
+  # =====================
+  - name: Admin
+    meta:
+      id: fld_admin
+      created: 1736121007524
+      modified: 1736121007524
+    children:
+      - url: "{{ _.baseUrl }}/admin/moderation-queue"
+        name: Get Moderation Queue
+        meta:
+          id: req_admin_moderation_queue
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get videos pending moderation"
+          sortKey: -1736121007524
+        method: GET
+        parameters:
+          - name: page
+            value: "1"
+          - name: limit
+            value: "20"
+          - name: status
+            value: pending
+            disabled: true
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/admin/videos/{{ _.videoId }}/approve"
+        name: Approve Video
+        meta:
+          id: req_admin_approve_video
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Approve a video for publishing"
+          sortKey: -1736121007525
+        method: POST
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/admin/videos/{{ _.videoId }}/reject"
+        name: Reject Video
+        meta:
+          id: req_admin_reject_video
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Reject a video with reason"
+          sortKey: -1736121007526
+        method: POST
+        body:
+          mimeType: application/json
+          text: |-
+            {
+              "reason": "Content violates community guidelines"
+            }
+        headers:
+          - name: Authorization
+            value: "Bearer {{ _.accessToken }}"
+          - name: Content-Type
+            value: application/json
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+  # =====================
+  # Search Folder
+  # =====================
+  - name: Search
+    meta:
+      id: fld_search
+      created: 1736121007524
+      modified: 1736121007524
+    children:
+      - url: "{{ _.baseUrl }}/api/search/videos"
+        name: Search Videos
+        meta:
+          id: req_search_videos
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Search for videos by query"
+          sortKey: -1736121007524
+        method: GET
+        parameters:
+          - name: q
+            value: tutorial
+          - name: page
+            value: "1"
+          - name: limit
+            value: "20"
+          - name: sort
+            value: relevance
+            disabled: true
+        headers:
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/search/channels"
+        name: Search Channels
+        meta:
+          id: req_search_channels
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Search for channels by query"
+          sortKey: -1736121007525
+        method: GET
+        parameters:
+          - name: q
+            value: gaming
+          - name: page
+            value: "1"
+          - name: limit
+            value: "20"
+        headers:
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+      - url: "{{ _.baseUrl }}/api/videos/trending"
+        name: Get Trending Videos
+        meta:
+          id: req_search_trending
+          created: 1736121007524
+          modified: 1736121007524
+          isPrivate: false
+          description: "Get trending videos"
+          sortKey: -1736121007526
+        method: GET
+        parameters:
+          - name: limit
+            value: "20"
+          - name: period
+            value: "7d"
+            disabled: true
+        headers:
+          - name: User-Agent
+            value: insomnia/11.5.0
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_streambox_api
+    created: 1736121007524
+    modified: 1736121007524
+
+environments:
+  name: Base Environment
+  meta:
+    id: env_base_streambox
+    created: 1736121007524
+    modified: 1736121007524
+    isPrivate: false
+  data:
+    baseUrl: "localhost:3000"
+    # Auto-chains from Login response - run Login first, then all other requests auto-authenticate
+    accessToken: "{% response 'body', 'req_auth_login', '$.accessToken' %}"
+    refreshToken: "{% response 'body', 'req_auth_login', '$.refreshToken' %}"
+    userId: ""
+    channelId: ""
+    channelHandle: ""
+    videoId: ""
+    commentId: ""
+  subEnvironments:
+    - name: Development
+      meta:
+        id: env_development
+        created: 1736121007524
+        modified: 1736121007524
+        isPrivate: false
+      data:
+        baseUrl: "localhost:3000"
+        # Auto-chains from Login response - extracts $.accessToken from response body
+        accessToken: "{% response 'body', 'req_auth_login', '$.accessToken' %}"
+        # Auto-chains from Login response - extracts $.refreshToken from response body
+        refreshToken: "{% response 'body', 'req_auth_login', '$.refreshToken' %}"
+        userId: ""
+        channelId: ""
+        channelHandle: ""
+        videoId: ""
+        commentId: ""
+    - name: Production
+      meta:
+        id: env_production
+        created: 1736121007524
+        modified: 1736121007524
+        isPrivate: false
+      data:
+        baseUrl: "https://api.streambox.com"
+        # Auto-chains from Login response
+        accessToken: "{% response 'body', 'req_auth_login', '$.accessToken' %}"
+        refreshToken: "{% response 'body', 'req_auth_login', '$.refreshToken' %}"
+        userId: ""
+        channelId: ""
+        channelHandle: ""
+        videoId: ""
+        commentId: ""
+    - name: Manual Token Override
+      meta:
+        id: env_manual
+        created: 1736121007524
+        modified: 1736121007524
+        isPrivate: false
+      data:
+        baseUrl: "localhost:3000"
+        # Paste tokens manually here if you don't want auto-chaining
+        accessToken: ""
+        refreshToken: ""
+        userId: ""
+        channelId: ""
+        channelHandle: ""
+        videoId: ""
+        commentId: ""

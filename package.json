@@ -1,0 +1,21 @@
+{
+  "name": "streambox",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
+    "format": "turbo run format",
+    "format:check": "turbo run format:check",
+    "check": "turbo run check",
+    "test": "turbo run test",
+    "db:migrate": "npm run db:migrate --workspace=@streambox/api",
+    "db:studio": "npm run db:studio --workspace=@streambox/api"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "turbo": "^2.0.0"
+  }
+}
