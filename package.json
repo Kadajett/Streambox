@@ -2,6 +2,12 @@
   "name": "streambox",
   "private": true,
   "packageManager": "pnpm@10.14.0",
+  "pnpm": {
+    "overrides": {
+      "zod": "3.23.8",
+      "@nest-zod/z": "npm:zod@3.23.8"
+    }
+  },
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
@@ -11,8 +17,9 @@
     "format:check": "turbo run format:check",
     "check": "turbo run check",
     "test": "turbo run test",
-    "db:migrate": "npm run db:migrate --workspace=@streambox/api",
-    "db:studio": "npm run db:studio --workspace=@streambox/api"
+    "db:generate": "pnpm --filter api db:generate",
+    "db:migrate": "pnpm --filter api db:migrate",
+    "db:studio": "pnpm --filter api db:studio"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

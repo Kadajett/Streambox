@@ -21,7 +21,7 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
-  channel       Channel?
+  channels      Channel[]
   comments      Comment[]
   videoLikes    VideoLike[]
   subscriptions Subscription[]
@@ -40,7 +40,7 @@ model Channel {
   description String?
   bannerUrl   String?  @map("banner_url")
   avatarUrl   String?  @map("avatar_url")
-  userId      String   @unique @map("user_id")
+  userId      String   @map("user_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -49,6 +49,7 @@ model Channel {
   videos        Video[]
   subscribers   Subscription[]
 
+  @@index([userId])
   @@map("channels")
 }
 

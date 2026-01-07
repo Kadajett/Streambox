@@ -1,253 +1,287 @@
 // ============================================
-// API Response Types
+// StreamBox Shared Types
+// ============================================
+// All schemas export both the Zod schema (for validation)
+// and the inferred TypeScript type (for type safety)
+//
+// Naming Convention:
+// - Schemas: {Name}Schema (e.g., UserSchema, VideoSchema)
+// - Types: {Name} (e.g., User, Video)
+// - Request schemas: {Action}{Resource}RequestSchema (e.g., CreateVideoRequestSchema)
+// - Response schemas: {Resource}ResponseSchema (e.g., VideoResponseSchema)
+// - Error constants: {RESOURCE}_ERRORS (e.g., AUTH_ERRORS, VIDEO_ERRORS)
 // ============================================
 
-export interface ApiResponse<T> {
-  data: T;
-  meta?: PaginationMeta;
-}
+// Re-export zod for convenience
+export { z } from 'zod';
 
-export interface PaginationMeta {
-  page: number;
-  pageSize: number;
-  total: number;
-  totalPages: number;
-}
+// Common/Shared
+export {
+  // Schemas
+  TimestampsSchema,
+  PaginationMetaSchema,
+  PaginationQuerySchema,
+  ApiErrorDetailSchema,
+  ApiErrorResponseSchema,
+  MessageResponseSchema,
+  IdParamSchema,
+  SortOrderSchema,
+  // Types
+  type Timestamps,
+  type PaginationMeta,
+  type PaginationQuery,
+  type ApiErrorDetail,
+  type ApiErrorResponse,
+  type MessageResponse,
+  type IdParam,
+  type SortOrder,
+  // Factory functions
+  createPaginatedResponseSchema,
+  createApiResponseSchema,
+} from './schemas/common';
 
-export interface ApiError {
-  error: {
-    code: string;
-    message: string;
-    details?: Array<{
-      field: string;
-      message: string;
-    }>;
-  };
-}
+// User
+export {
+  // Constants
+  USERNAME_PATTERN,
+  USERNAME_MIN,
+  USERNAME_MAX,
+  PASSWORD_MIN,
+  DISPLAY_NAME_MAX,
+  // Schemas
+  UserBaseSchema,
+  UserSchema,
+  UserDtoSchema,
+  UserProfileSchema,
+  UserSummarySchema,
+  JwtPayloadSchema,
+  CurrentUserSchema,
+  // Types
+  type User,
+  type UserDto,
+  type UserProfile,
+  type UserSummary,
+  type JwtPayload,
+  type CurrentUser,
+} from './schemas/user';
 
-// ============================================
-// User Types
-// ============================================
+// Auth
+export {
+  // Request Schemas
+  RegisterRequestSchema,
+  LoginRequestSchema,
+  RefreshTokenRequestSchema,
+  ChangePasswordRequestSchema,
+  ResetPasswordRequestSchema,
+  ConfirmResetPasswordRequestSchema,
+  // Response Schemas
+  TokenPairSchema,
+  AuthResponseSchema,
+  LogoutResponseSchema,
+  // Types
+  type RegisterRequest,
+  type LoginRequest,
+  type RefreshTokenRequest,
+  type ChangePasswordRequest,
+  type ResetPasswordRequest,
+  type ConfirmResetPasswordRequest,
+  type TokenPair,
+  type AuthResponse,
+  type LogoutResponse,
+  // Error Constants
+  AUTH_ERRORS,
+  type AuthErrorCode,
+  type AuthErrorMessage,
+} from './schemas/auth';
 
-export interface User {
-  id: string;
-  email: string;
-  username: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+// Channel
+export {
+  // Constants
+  CHANNEL_NAME_MIN,
+  CHANNEL_NAME_MAX,
+  CHANNEL_HANDLE_MIN,
+  CHANNEL_HANDLE_MAX,
+  CHANNEL_HANDLE_PATTERN,
+  CHANNEL_DESCRIPTION_MAX,
+  CHANNEL_USER_CHANNEL_LIMIT,
+  // Schemas
+  ChannelBaseSchema,
+  ChannelSchema,
+  ChannelWithStatsSchema,
+  ChannelsWithStatsSchema,
+  ChannelSummarySchema,
+  CreateChannelRequestSchema,
+  UpdateChannelRequestSchema,
+  ChannelResponseSchema,
+  ChannelsResponseSchema,
+  ChannelHandleParamSchema,
+  // Types
+  type Channel,
+  type ChannelWithStats,
+  type ChannelsWithStats,
+  type ChannelSummary,
+  type CreateChannelRequest,
+  type UpdateChannelRequest,
+  type ChannelResponse,
+  type ChannelsResponse,
+  type ChannelHandleParam,
+  // Error Constants
+  CHANNEL_ERRORS,
+  type ChannelErrorCode,
+  type ChannelErrorMessage,
+} from './schemas/channel';
 
-export interface UserProfile extends User {
-  channel: Channel | null;
-  subscriberCount: number;
-}
+// Video
+export {
+  // Constants
+  VIDEO_TITLE_MIN,
+  VIDEO_TITLE_MAX,
+  VIDEO_DESCRIPTION_MAX,
+  // Schemas
+  VideoStatusSchema,
+  VideoVisibilitySchema,
+  VideoBaseSchema,
+  VideoSchema,
+  VideoWithChannelSchema,
+  VideoDetailSchema,
+  VideoSummarySchema,
+  CreateVideoRequestSchema,
+  UpdateVideoRequestSchema,
+  PublishVideoRequestSchema,
+  VideoSortBySchema,
+  VideoListQuerySchema,
+  ChannelVideosQuerySchema,
+  VideoResponseSchema,
+  VideoUploadStatusResponseSchema,
+  // Types
+  type VideoStatus,
+  type VideoVisibility,
+  type Video,
+  type VideoWithChannel,
+  type VideoDetail,
+  type VideoSummary,
+  type CreateVideoRequest,
+  type UpdateVideoRequest,
+  type PublishVideoRequest,
+  type VideoSortBy,
+  type VideoListQuery,
+  type ChannelVideosQuery,
+  type VideoResponse,
+  type VideoUploadStatusResponse,
+  // Error Constants
+  VIDEO_ERRORS,
+  type VideoErrorCode,
+  type VideoErrorMessage,
+} from './schemas/video';
 
-export interface RegisterDto {
-  email: string;
-  username: string;
-  password: string;
-  displayName?: string;
-}
+// Comment
+export {
+  // Constants
+  COMMENT_CONTENT_MIN,
+  COMMENT_CONTENT_MAX,
+  // Schemas
+  CommentBaseSchema,
+  CommentSchema,
+  CommentWithUserSchema,
+  CommentWithRepliesSchema,
+  CreateCommentRequestSchema,
+  UpdateCommentRequestSchema,
+  CommentSortBySchema,
+  CommentsQuerySchema,
+  RepliesQuerySchema,
+  CommentResponseSchema,
+  // Types
+  type Comment,
+  type CommentWithUser,
+  type CommentWithReplies,
+  type CreateCommentRequest,
+  type UpdateCommentRequest,
+  type CommentSortBy,
+  type CommentsQuery,
+  type RepliesQuery,
+  type CommentResponse,
+  // Error Constants
+  COMMENT_ERRORS,
+  type CommentErrorCode,
+  type CommentErrorMessage,
+} from './schemas/comment';
 
-export interface LoginDto {
-  email: string;
-  password: string;
-}
+// Like
+export {
+  // Schemas
+  LikeTypeSchema,
+  VideoLikeSchema,
+  CommentLikeSchema,
+  LikeVideoRequestSchema,
+  LikeResponseSchema,
+  CommentLikeResponseSchema,
+  // Types
+  type LikeType,
+  type VideoLike,
+  type CommentLike,
+  type LikeVideoRequest,
+  type LikeResponse,
+  type CommentLikeResponse,
+} from './schemas/like';
 
-export interface AuthResponse {
-  user: User;
-  accessToken: string;
-}
+// Subscription
+export {
+  // Schemas
+  SubscriptionSchema,
+  SubscriptionWithChannelSchema,
+  SubscriptionsQuerySchema,
+  SubscriptionResponseSchema,
+  SubscriptionStatusSchema,
+  // Types
+  type Subscription,
+  type SubscriptionWithChannel,
+  type SubscriptionsQuery,
+  type SubscriptionResponse,
+  type SubscriptionStatus,
+  // Error Constants
+  SUBSCRIPTION_ERRORS,
+  type SubscriptionErrorCode,
+  type SubscriptionErrorMessage,
+} from './schemas/subscription';
 
-// ============================================
-// Channel Types
-// ============================================
+// Feed & Search
+export {
+  // Schemas
+  FeedTypeSchema,
+  FeedQuerySchema,
+  SearchQuerySchema,
+  TrendingQuerySchema,
+  HistoryQuerySchema,
+  CategorySchema,
+  SearchResultTypeSchema,
+  SearchSuggestionsResponseSchema,
+  TranscodeStatusSchema,
+  TranscodeJobSchema,
+  TranscodeJobResponseSchema,
+  // Types
+  type FeedType,
+  type FeedQuery,
+  type SearchQuery,
+  type TrendingQuery,
+  type HistoryQuery,
+  type Category,
+  type SearchResultType,
+  type SearchSuggestionsResponse,
+  type TranscodeStatus,
+  type TranscodeJob,
+  type TranscodeJobResponse,
+} from './schemas/feed';
 
-export interface Channel {
-  id: string;
-  name: string;
-  handle: string;
-  description: string | null;
-  bannerUrl: string | null;
-  avatarUrl: string | null;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ChannelWithStats extends Channel {
-  subscriberCount: number;
-  videoCount: number;
-  totalViews: number;
-}
-
-export interface CreateChannelDto {
-  name: string;
-  handle: string;
-  description?: string;
-}
-
-export interface UpdateChannelDto {
-  name?: string;
-  description?: string;
-  bannerUrl?: string;
-  avatarUrl?: string;
-}
-
-// ============================================
-// Video Types
-// ============================================
-
-export type VideoStatus = 'draft' | 'processing' | 'ready' | 'failed';
-export type VideoVisibility = 'public' | 'unlisted' | 'private';
-
-export interface Video {
-  id: string;
-  title: string;
-  description: string | null;
-  thumbnailUrl: string | null;
-  videoUrl: string | null;
-  duration: number | null;
-  status: VideoStatus;
-  visibility: VideoVisibility;
-  viewCount: number;
-  likeCount: number;
-  dislikeCount: number;
-  channelId: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt: string | null;
-}
-
-export interface VideoWithChannel extends Video {
-  channel: Channel;
-}
-
-export interface VideoDetail extends VideoWithChannel {
-  isLiked: boolean | null;
-  isDisliked: boolean | null;
-  isSubscribed: boolean | null;
-}
-
-export interface CreateVideoDto {
-  title: string;
-  description?: string;
-  visibility?: VideoVisibility;
-}
-
-export interface UpdateVideoDto {
-  title?: string;
-  description?: string;
-  visibility?: VideoVisibility;
-  thumbnailUrl?: string;
-}
-
-// ============================================
-// Comment Types
-// ============================================
-
-export interface Comment {
-  id: string;
-  content: string;
-  userId: string;
-  videoId: string;
-  parentId: string | null;
-  likeCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface CommentWithUser extends Comment {
-  user: Pick<User, 'id' | 'username' | 'displayName' | 'avatarUrl'>;
-  replies?: CommentWithUser[];
-  replyCount: number;
-}
-
-export interface CreateCommentDto {
-  content: string;
-  parentId?: string;
-}
-
-export interface UpdateCommentDto {
-  content: string;
-}
-
-// ============================================
-// Like Types
-// ============================================
-
-export type LikeType = 'like' | 'dislike';
-
-export interface VideoLike {
-  id: string;
-  userId: string;
-  videoId: string;
-  type: LikeType;
-  createdAt: string;
-}
-
-export interface LikeVideoDto {
-  type: LikeType;
-}
-
-// ============================================
-// Subscription Types
-// ============================================
-
-export interface Subscription {
-  id: string;
-  userId: string;
-  channelId: string;
-  createdAt: string;
-}
-
-export interface SubscriptionWithChannel extends Subscription {
-  channel: Channel;
-}
-
-// ============================================
-// Transcode Job Types
-// ============================================
-
-export type TranscodeStatus = 'pending' | 'processing' | 'completed' | 'failed';
-
-export interface TranscodeJob {
-  id: string;
-  videoId: string;
-  status: TranscodeStatus;
-  progress: number;
-  error: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// ============================================
-// Feed Types
-// ============================================
-
-export interface FeedQuery {
-  page?: number;
-  pageSize?: number;
-  category?: string;
-  sortBy?: 'recent' | 'popular' | 'trending';
-}
-
-export interface SearchQuery extends FeedQuery {
-  q: string;
-}
-
-// ============================================
-// Health Check
-// ============================================
-
-export interface HealthCheckResponse {
-  status: 'ok' | 'error';
-  timestamp: string;
-  services: {
-    database: 'connected' | 'disconnected';
-    redis: 'connected' | 'disconnected';
-    storage: 'connected' | 'disconnected';
-  };
-}
+// Health
+export {
+  // Schemas
+  ServiceStatusSchema,
+  HealthStatusSchema,
+  HealthCheckResponseSchema,
+  SimpleHealthResponseSchema,
+  // Types
+  type ServiceStatus,
+  type HealthStatus,
+  type HealthCheckResponse,
+  type SimpleHealthResponse,
+} from './schemas/health';

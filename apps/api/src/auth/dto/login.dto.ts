@@ -1,12 +1,5 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { LoginRequestSchema } from '@streambox/shared-types';
 
-export class LoginDto {
-  @IsEmail({}, { message: 'Please provide a valid email address' })
-  @IsNotEmpty({ message: 'Email is required' })
-  email: string;
-
-  @IsString()
-  @IsNotEmpty({ message: 'Password is required' })
-  @MinLength(8, { message: 'Password must be at least 8 characters' })
-  password: string;
-}
+// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+export class LoginDto extends createZodDto(LoginRequestSchema) {}

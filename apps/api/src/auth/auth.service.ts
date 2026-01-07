@@ -1,9 +1,12 @@
 import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
+// biome-ignore lint/style/useImportType: NestJS DI requires runtime reference
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+// biome-ignore lint/style/useImportType: NestJS DI requires runtime reference
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterDto } from './dto/register.dto';
-import { LoginDto } from './dto/login.dto';
+import type { RegisterDto } from './dto/register.dto';
+import type { LoginDto } from './dto/login.dto';
+import type { User } from '@streambox/shared-types';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +15,9 @@ export class AuthService {
     private readonly prisma: PrismaService
   ) {}
 
-  async register(dto: RegisterDto) {
+  async register(
+    dto: RegisterDto
+  ): Promise<{ user: User; accessToken: string; refreshToken: string }> {
     // 1. Check if user exists by email OR username
     const existingUser = await this.prisma.user.findFirst({
       where: {
@@ -43,8 +48,10 @@ export class AuthService {
         email: true,
         username: true,
         displayName: true,
+        passwordHash: false,
         avatarUrl: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
 
@@ -59,17 +66,11 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto) {
-    // TODO: Implement with Prisma in FAL-11
-    // 1. Find user by email
-    // 2. Compare password with bcrypt
-    // 3. Generate JWT token
-    console.log('Login DTO:', dto);
+  async login(dto: LoginDto): Promise<{ user: User; accessToken: string; refreshToken: string }> {
     if (!dto?.email || !dto?.password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Placeholder - replace with actual database call
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -87,7 +88,7 @@ export class AuthService {
     const refreshToken = this.generateRefreshToken(user.id);
 
     return {
-      user: { id: user.id, email: user.email },
+      user,
       accessToken: token,
       refreshToken,
     };
