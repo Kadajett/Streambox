@@ -1,7 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 // biome-ignore lint/style/useImportType: NestJS DI requires runtime reference
 import { ChannelsService } from './channels.service';
-import type { ChannelHandleParamDto, ChannelIdParamDto, CreateChannelDto } from './dto';
+// biome-ignore lint/style/useImportType: NestJS validation requires runtime class reference
+import {
+  ChannelHandleParamDto,
+  ChannelIdParamDto,
+  CreateChannelDto,
+  UpdateChannelDto,
+} from './dto';
 import { CurrentUser, JwtAuthGuard } from 'src/auth';
 import type { UserDto } from '@streambox/shared-types';
 
@@ -32,7 +38,7 @@ export class ChannelsController {
   async updateChannel(
     @CurrentUser() user: UserDto,
     @Param() params: ChannelIdParamDto,
-    @Body() dto: Partial<CreateChannelDto>
+    @Body() dto: UpdateChannelDto,
   ) {
     return this.channelsService.updateChannel(params.id, dto, user.id);
   }

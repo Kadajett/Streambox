@@ -3,6 +3,7 @@ import {
   ConflictException,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import type { CreateChannelDto, UpdateChannelDto, ChannelHandleParamDto } from './dto';
 // biome-ignore lint/style/useImportType: NestJS DI requires runtime reference
@@ -15,7 +16,7 @@ import {
   ChannelsWithStatsSchema,
   CHANNEL_USER_CHANNEL_LIMIT,
 } from '@streambox/shared-types';
-import { OK } from 'zod';
+import { OK, z } from 'zod';
 
 @Injectable()
 export class ChannelsService {
@@ -151,5 +152,28 @@ export class ChannelsService {
     await this.prisma.channel.delete({
       where: { id: channelId, userId },
     });
+  }
+
+  async updateAvatar(channelId: string, userId: string, avatarUrl: string): Promise<Channel> {
+    if (!avatarUrl) {
+      throw new BadRequestException();
+    }
+
+    const channel = await this.prisma.channel.findUnique({
+      where: { id: channelId, userId },
+    });
+
+    if (!channel) {
+      throw new NotFoundException(CHANNEL_ERRORS.CHANNEL_NOT_FOUND);
+    }
+
+    const updatedChannel = await this.prisma.channel.update({
+      where: { id: channelId, userId },
+      data: {
+        avatarUrl,
+      },
+    });
+
+    return updatedChannel;
   }
 }
