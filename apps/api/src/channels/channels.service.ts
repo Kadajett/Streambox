@@ -6,17 +6,15 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import type { CreateChannelDto, UpdateChannelDto, ChannelHandleParamDto } from './dto';
-// biome-ignore lint/style/useImportType: NestJS DI requires runtime reference
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CHANNEL_ERRORS,
   type Channel,
   type ChannelWithStats,
-  type ChannelsWithStats,
+  ChannelsWithStats,
   ChannelsWithStatsSchema,
   CHANNEL_USER_CHANNEL_LIMIT,
 } from '@streambox/shared-types';
-import { OK, z } from 'zod';
 
 @Injectable()
 export class ChannelsService {

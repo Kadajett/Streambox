@@ -12,6 +12,7 @@
         "noUnusedVariables": "warn"
       },
       "style": {
+        "useImportType": "off",
         "noNonNullAssertion": "off"
       },
       "suspicious": {

@@ -3,8 +3,10 @@ import { Controller, Post, Get, Body, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
-import type { CurrentUserPayload } from './decorators/current-user.decorator';
-import type { RegisterDto, LoginDto } from './dto';
+// biome-ignore lint/style/useImportType: NestJS validation requires runtime class reference
+import { RegisterDto, LoginDto } from './dto';
+// biome-ignore lint/style/useImportType: NestJS validation requires runtime class reference
+import { CurrentUserDto } from './dto/current-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -22,13 +24,13 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  getProfile(@CurrentUser() user: CurrentUserPayload) {
+  getProfile(@CurrentUser() user: CurrentUserDto) {
     return user;
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  logout(@CurrentUser() user: CurrentUserPayload) {
+  logout(@CurrentUser() user: CurrentUserDto) {
     return this.authService.logout(user.id);
   }
 }

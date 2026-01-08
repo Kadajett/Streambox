@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import type { RegisterDto } from './dto/register.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { User } from '@streambox/shared-types';
+import z from 'zod';
 
 @Injectable()
 export class AuthService {
@@ -87,8 +88,11 @@ export class AuthService {
     const token = this.generateAccessToken(user.id, user.email);
     const refreshToken = this.generateRefreshToken(user.id);
 
+    // Exclude passwordHash from response
+    const { passwordHash: _, ...userWithoutPassword } = user;
+
     return {
-      user,
+      user: userWithoutPassword,
       accessToken: token,
       refreshToken,
     };

@@ -5,11 +5,12 @@ import { ChannelsService } from './channels.service';
 import {
   ChannelHandleParamDto,
   ChannelIdParamDto,
+  ChannelsWithStatsDto,
   CreateChannelDto,
   UpdateChannelDto,
 } from './dto';
-import { CurrentUser, JwtAuthGuard } from 'src/auth';
-import type { UserDto } from '@streambox/shared-types';
+import { CurrentUser, CurrentUserDto, JwtAuthGuard } from 'src/auth';
+import { ZodResponse } from 'nestjs-zod';
 
 @Controller('channels')
 export class ChannelsController {
@@ -17,14 +18,14 @@ export class ChannelsController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  async createChannel(@CurrentUser() user: UserDto, @Body() dto: CreateChannelDto) {
+  async createChannel(@CurrentUser() user: CurrentUserDto, @Body() dto: CreateChannelDto) {
     return this.channelsService.createChannel(dto, user.id);
   }
 
   @Get('mine')
   @UseGuards(JwtAuthGuard)
-  async findMyChannel(@CurrentUser() user: UserDto) {
-    return this.channelsService.findAllByUserId(user?.id);
+  async findMyChannel(@CurrentUser() user: CurrentUserDto) {
+    return this.channelsService.findAllByUserId(user.id);
   }
 
   @Get(':handle')
@@ -36,16 +37,17 @@ export class ChannelsController {
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   async updateChannel(
-    @CurrentUser() user: UserDto,
+    @CurrentUser() user: CurrentUserDto,
     @Param() params: ChannelIdParamDto,
-    @Body() dto: UpdateChannelDto,
+    @Body() dto: UpdateChannelDto
   ) {
+    console.log('Updating channel with ID:', params.id, 'with data:', dto);
     return this.channelsService.updateChannel(params.id, dto, user.id);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  async deleteChannel(@CurrentUser() user: UserDto, @Param() params: ChannelIdParamDto) {
+  async deleteChannel(@CurrentUser() user: CurrentUserDto, @Param() params: ChannelIdParamDto) {
     return this.channelsService.deleteChannel(params.id, user.id);
   }
 }

@@ -1,10 +1,57 @@
-import { Module } from '@nestjs/common';
+// biome-ignore lint/style/useImportType: <explanation>
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  Logger,
+  type MiddlewareConsumer,
+  Module,
+  type NestModule,
+} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ChannelsModule } from './channels/channels.module';
+import type { Request, Response, NextFunction } from 'express';
+import {
+  ZodValidationPipe,
+  ZodSerializerInterceptor,
+  ZodSerializationException,
+  ZodSchemaDeclarationException,
+} from 'nestjs-zod';
+import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, BaseExceptionFilter } from '@nestjs/core';
+import { ZodError } from 'zod';
+
+// http-exception.filter
+@Catch(HttpException)
+export class HttpExceptionFilter extends BaseExceptionFilter {
+  private readonly logger = new Logger(HttpExceptionFilter.name);
+
+  catch(exception: HttpException, host: ArgumentsHost) {
+    if (exception instanceof ZodSerializationException) {
+      const zodError = exception.getZodError();
+      if (zodError instanceof ZodError) {
+        this.logger.error(`Zod Serialization Error: ${zodError.message}`, zodError.stack);
+      }
+    }
+    super.catch(exception, host);
+  }
+}
+
+@Catch(ZodSchemaDeclarationException)
+export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
+  catch(_exception: ZodSchemaDeclarationException, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse();
+    response.status(500).json({
+      statusCode: 500,
+      message: 'Missing nestjs-zod schema declaration',
+    });
+  }
+}
 
 @Module({
   imports: [
@@ -17,6 +64,30 @@ import { ChannelsModule } from './channels/channels.module';
     ChannelsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_FILTER, useClass: ZodSchemaDeclarationExceptionFilter },
+    {
+      provide: APP_PIPE,
+      useClass: ZodValidationPipe,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ZodSerializerInterceptor,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+  ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply((req: Request, _res: Response, next: NextFunction) => {
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+        next();
+      })
+      .forRoutes('*');
+  }
+}

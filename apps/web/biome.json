@@ -7,9 +7,7 @@
         "useExhaustiveDependencies": "warn",
         "useHookAtTopLevel": "error"
       },
-      "style": {
-        "useImportType": "off"
-      },
+      "style": {},
       "suspicious": {
         "noArrayIndexKey": "warn"
       },
@@ -24,10 +22,6 @@
     }
   },
   "files": {
-    "ignore": [
-      "node_modules",
-      "dist",
-      "routeTree.gen.ts"
-    ]
+    "ignore": ["node_modules", "dist", "routeTree.gen.ts"]
   }
 }
