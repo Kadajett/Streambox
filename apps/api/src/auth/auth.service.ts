@@ -6,8 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import type { RegisterDto } from './dto/register.dto';
 import type { LoginDto } from './dto/login.dto';
-import type { User } from '@streambox/shared-types';
-import z from 'zod';
+import type { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +17,7 @@ export class AuthService {
 
   async register(
     dto: RegisterDto
-  ): Promise<{ user: User; accessToken: string; refreshToken: string }> {
+  ): Promise<{ user: Omit<User, 'passwordHash'>; accessToken: string; refreshToken: string }> {
     // 1. Check if user exists by email OR username
     const existingUser = await this.prisma.user.findFirst({
       where: {
@@ -67,7 +66,7 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto): Promise<{ user: User; accessToken: string; refreshToken: string }> {
+  async login(dto: LoginDto): Promise<{ user: Omit<User, 'passwordHash'>; accessToken: string; refreshToken: string }> {
     if (!dto?.email || !dto?.password) {
       throw new UnauthorizedException('Invalid credentials');
     }

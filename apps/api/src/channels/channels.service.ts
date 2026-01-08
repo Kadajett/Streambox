@@ -7,14 +7,15 @@ import {
 } from '@nestjs/common';
 import type { CreateChannelDto, UpdateChannelDto, ChannelHandleParamDto } from './dto';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  CHANNEL_ERRORS,
-  type Channel,
-  type ChannelWithStats,
-  ChannelsWithStats,
-  ChannelsWithStatsSchema,
-  CHANNEL_USER_CHANNEL_LIMIT,
-} from '@streambox/shared-types';
+import type { Channel } from '@prisma/client';
+import { CHANNEL_ERRORS, CHANNEL_USER_CHANNEL_LIMIT } from '@streambox/shared-types';
+
+// Local type for channel with computed stats
+type ChannelWithStats = Channel & {
+  subscriberCount: number;
+  videoCount: number;
+  totalViews: number;
+};
 
 @Injectable()
 export class ChannelsService {
@@ -52,7 +53,7 @@ export class ChannelsService {
     return channel;
   }
 
-  async findAllByUserId(userId: string): Promise<ChannelsWithStats> {
+  async findAllByUserId(userId: string): Promise<ChannelWithStats[]> {
     const channels = await this.prisma.channel.findMany({
       where: { userId },
       include: {
@@ -75,14 +76,12 @@ export class ChannelsService {
     }
 
     // Map each channel to include computed stats
-    return ChannelsWithStatsSchema.parse(
-      channels.map(({ _count, videos, ...channel }) => ({
-        ...channel,
-        subscriberCount: _count.subscribers,
-        videoCount: _count.videos,
-        totalViews: videos.reduce((sum, video) => sum + video.viewCount, 0),
-      }))
-    );
+    return channels.map(({ _count, videos, ...channel }) => ({
+      ...channel,
+      subscriberCount: _count.subscribers,
+      videoCount: _count.videos,
+      totalViews: videos.reduce((sum, video) => sum + video.viewCount, 0),
+    }));
   }
 
   async findByHandle(dto: ChannelHandleParamDto): Promise<ChannelWithStats> {

@@ -5,7 +5,7 @@ import { TRANSCODE_QUEUE } from './videos.constants';
 import { StorageService } from 'src/storage/storage.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { VIDEO_ERRORS, CHANNEL_ERRORS } from '@streambox/shared-types';
-import type { Video } from '@streambox/shared-types';
+import type { Video } from '@prisma/client';
 import { CreateVideoDto } from './dto';
 
 @Injectable()
