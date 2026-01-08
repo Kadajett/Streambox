@@ -1,4 +1,3 @@
-// biome-ignore lint/style/useImportType: <explanation>
 import {
   ArgumentsHost,
   Catch,
@@ -24,6 +23,8 @@ import {
 } from 'nestjs-zod';
 import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, BaseExceptionFilter } from '@nestjs/core';
 import { ZodError } from 'zod';
+import { VideosModule } from './videos/videos.module';
+import { BullModule } from '@nestjs/bullmq';
 
 // http-exception.filter
 @Catch(HttpException)
@@ -62,6 +63,14 @@ export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
     PrismaModule,
     AuthModule,
     ChannelsModule,
+
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'localhost',
+        port: Number.parseInt(process.env.REDIS_PORT || '6379'),
+      },
+    }),
+    VideosModule,
   ],
   controllers: [AppController],
   providers: [
