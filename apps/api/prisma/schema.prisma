@@ -45,9 +45,9 @@ model Channel {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  videos        Video[]
-  subscribers   Subscription[]
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videos      Video[]
+  subscribers Subscription[]
 
   @@index([userId])
   @@map("channels")
@@ -70,25 +70,35 @@ enum VideoVisibility {
   private
 }
 
+enum ModerationStatus {
+  pending
+  approved
+  rejected
+  manual_review
+}
+
 model Video {
-  id           String          @id @default(cuid())
-  title        String
-  description  String?
-  thumbnailUrl String?         @map("thumbnail_url")
-  videoUrl     String?         @map("video_url")
-  duration     Int?            // Duration in seconds
-  status       VideoStatus     @default(draft)
-  visibility   VideoVisibility @default(private)
-  viewCount    Int             @default(0) @map("view_count")
-  likeCount    Int             @default(0) @map("like_count")
-  dislikeCount Int             @default(0) @map("dislike_count")
-  channelId    String          @map("channel_id")
-  createdAt    DateTime        @default(now()) @map("created_at")
-  updatedAt    DateTime        @updatedAt @map("updated_at")
-  publishedAt  DateTime?       @map("published_at")
+  id               String           @id @default(cuid())
+  title            String
+  description      String?
+  thumbnailUrl     String?          @map("thumbnail_url")
+  videoUrl         String?          @map("video_url")
+  duration         Int? // Duration in seconds
+  status           VideoStatus      @default(draft)
+  visibility       VideoVisibility  @default(private)
+  moderation       ModerationStatus @default(pending)
+  moderationScore  Float?           @map("moderation_score")
+  moderationReason String?          @map("moderation_reason")
+  viewCount        Int              @default(0) @map("view_count")
+  likeCount        Int              @default(0) @map("like_count")
+  dislikeCount     Int              @default(0) @map("dislike_count")
+  channelId        String           @map("channel_id")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  publishedAt      DateTime?        @map("published_at")
 
   // Relations
-  channel       Channel         @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channel       Channel        @relation(fields: [channelId], references: [id], onDelete: Cascade)
   comments      Comment[]
   likes         VideoLike[]
   transcodeJobs TranscodeJob[]

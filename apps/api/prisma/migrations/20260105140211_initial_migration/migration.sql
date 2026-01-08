@@ -102,7 +102,7 @@ CREATE UNIQUE INDEX "users_username_key" ON "users"("username");
 CREATE UNIQUE INDEX "channels_handle_key" ON "channels"("handle");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "channels_user_id_key" ON "channels"("user_id");
+CREATE INDEX "channels_user_id_idx" ON "channels"("user_id");
 
 -- CreateIndex
 CREATE INDEX "videos_channel_id_idx" ON "videos"("channel_id");
