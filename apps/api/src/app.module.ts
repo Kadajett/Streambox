@@ -25,6 +25,7 @@ import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, BaseExceptionFilter } from '@nes
 import { ZodError } from 'zod';
 import { VideosModule } from './videos/videos.module';
 import { BullModule } from '@nestjs/bullmq';
+import { StorageService } from './storage/storage.service';
 
 // http-exception.filter
 @Catch(HttpException)
@@ -88,6 +89,7 @@ export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
+    StorageService,
   ],
 })
 export class AppModule implements NestModule {

@@ -17,3 +17,6 @@ dist
 
 # Coverage
 coverage
+
+# Video storage (raw uploads, HLS, thumbnails)
+data/

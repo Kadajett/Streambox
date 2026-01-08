@@ -6,8 +6,8 @@ import { z } from 'zod';
 
 // Timestamps used across entities
 export const TimestampsSchema = z.object({
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  createdAt: z.iso.datetime(),
+  updatedAt: z.iso.datetime(),
 });
 export type Timestamps = z.infer<typeof TimestampsSchema>;
 

@@ -3,6 +3,7 @@ import { VideosController } from './videos.controller';
 import { VideosService } from './videos.service';
 import { BullModule } from '@nestjs/bullmq';
 import { TRANSCODE_QUEUE } from './videos.constants';
+import { StorageService } from '../storage/storage.service';
 
 @Module({
   imports: [
@@ -11,7 +12,7 @@ import { TRANSCODE_QUEUE } from './videos.constants';
     }),
   ],
   controllers: [VideosController],
-  providers: [VideosService],
-  exports: [VideosService],
+  providers: [VideosService, StorageService],
+  exports: [VideosService, StorageService],
 })
 export class VideosModule {}

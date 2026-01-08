@@ -21,22 +21,22 @@ export type VideoVisibility = z.infer<typeof VideoVisibilitySchema>;
 
 // Base video fields
 export const VideoBaseSchema = z.object({
-  id: z.string().cuid(),
+  id: z.cuid(),
   title: z
     .string()
     .min(VIDEO_TITLE_MIN, 'Title is required')
     .max(VIDEO_TITLE_MAX, `Title must be at most ${VIDEO_TITLE_MAX} characters`),
   description: z.string().max(VIDEO_DESCRIPTION_MAX).nullable(),
-  thumbnailUrl: z.string().url().nullable(),
-  videoUrl: z.string().url().nullable(),
+  thumbnailUrl: z.url().nullable(),
+  videoUrl: z.url().nullable(),
   duration: z.number().int().nonnegative().nullable(), // in seconds
   status: VideoStatusSchema,
   visibility: VideoVisibilitySchema,
   viewCount: z.number().int().nonnegative(),
   likeCount: z.number().int().nonnegative(),
   dislikeCount: z.number().int().nonnegative(),
-  channelId: z.string().cuid(),
-  publishedAt: z.string().datetime().nullable(),
+  channelId: z.cuid(),
+  publishedAt: z.iso.datetime().nullable(),
 });
 
 // Full video entity
@@ -59,12 +59,12 @@ export type VideoDetail = z.infer<typeof VideoDetailSchema>;
 
 // Video summary (for cards/thumbnails)
 export const VideoSummarySchema = z.object({
-  id: z.string().cuid(),
+  id: z.cuid(),
   title: z.string(),
-  thumbnailUrl: z.string().url().nullable(),
+  thumbnailUrl: z.url().nullable(),
   duration: z.number().int().nonnegative().nullable(),
   viewCount: z.number().int().nonnegative(),
-  publishedAt: z.string().datetime().nullable(),
+  publishedAt: z.iso.datetime().nullable(),
   channel: ChannelSummarySchema,
 });
 export type VideoSummary = z.infer<typeof VideoSummarySchema>;
@@ -86,11 +86,7 @@ export type CreateVideoRequest = z.infer<typeof CreateVideoRequestSchema>;
 
 // Update video request
 export const UpdateVideoRequestSchema = z.object({
-  title: z
-    .string()
-    .min(VIDEO_TITLE_MIN)
-    .max(VIDEO_TITLE_MAX)
-    .optional(),
+  title: z.string().min(VIDEO_TITLE_MIN).max(VIDEO_TITLE_MAX).optional(),
   description: z.string().max(VIDEO_DESCRIPTION_MAX).optional(),
   visibility: VideoVisibilitySchema.optional(),
   thumbnailUrl: z.string().url().optional(),
