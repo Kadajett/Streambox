@@ -12,6 +12,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { VIDEO_ERRORS, CHANNEL_ERRORS } from '@streambox/shared-types';
 import type { Video } from '@prisma/client';
 import { CreateVideoDto, UpdateVideoDto } from './dto';
+import { generateSlug, generateUniqueSlug } from 'src/utils/slug';
 
 @Injectable()
 export class VideosService {
@@ -39,9 +40,17 @@ export class VideosService {
       throw new ForbiddenException(CHANNEL_ERRORS.NOT_CHANNEL_OWNER);
     }
 
+    // Generate unique slug from title
+    const baseSlug = generateSlug(dto.title);
+    const slug = await generateUniqueSlug(baseSlug, async (s) => {
+      const existing = await this.prismaService.video.findUnique({ where: { slug: s } });
+      return existing !== null;
+    });
+
     const video = await this.prismaService.video.create({
       data: {
         title: dto.title,
+        slug,
         description: dto.description ?? null,
         channelId: channel.id,
         // @TODO: Generate actual URL later. filepath for local dev.
@@ -60,17 +69,27 @@ export class VideosService {
     return video;
   }
 
-  async findById(videoId: string, userId: string): Promise<Video> {
-    if (!videoId) {
+  /**
+   * Find a video by slug or ID
+   * Tries slug first, then falls back to ID lookup
+   */
+  async findByIdOrSlug(identifier: string, userId: string): Promise<Video> {
+    if (!identifier) {
       throw new NotFoundException(VIDEO_ERRORS.VIDEO_NOT_FOUND);
     }
 
-    const video = await this.prismaService.video.findUnique({
-      where: { id: videoId },
-      include: {
-        channel: true,
-      },
+    // Try to find by slug first, then by id
+    let video = await this.prismaService.video.findUnique({
+      where: { slug: identifier },
+      include: { channel: true },
     });
+
+    if (!video) {
+      video = await this.prismaService.video.findUnique({
+        where: { id: identifier },
+        include: { channel: true },
+      });
+    }
 
     if (!video) {
       throw new NotFoundException(VIDEO_ERRORS.VIDEO_NOT_FOUND);
@@ -97,11 +116,22 @@ export class VideosService {
     return video;
   }
 
+  // Alias for backwards compatibility
+  async findById(videoId: string, userId: string): Promise<Video> {
+    return this.findByIdOrSlug(videoId, userId);
+  }
+
   async findByChannel(
     channelId: string,
     userId: string,
     options?: { page?: number; pageSize?: number }
-  ): Promise<{ videos: Video[]; total: number; page: number; pageSize: number; totalPages: number }> {
+  ): Promise<{
+    videos: Video[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }> {
     const page = options?.page ?? 1;
     const pageSize = Math.min(options?.pageSize ?? 20, 100); // Cap at 100
     const skip = (page - 1) * pageSize;

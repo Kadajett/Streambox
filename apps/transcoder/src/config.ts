@@ -16,6 +16,6 @@ export const config = {
     qualities: DEFAULT_QUALITY_PRESETS as QualityPreset[],
   },
   queue: {
-    name: 'transcode-queue',
+    name: 'transcode',
   },
 } as const;

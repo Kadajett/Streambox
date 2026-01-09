@@ -3,11 +3,11 @@ import { z } from 'zod';
 import { PaginationQuerySchema, ChannelVideosQuerySchema } from '@streambox/shared-types';
 
 const VideoIdParamSchema = z.object({
-  id: z.cuid(),
+  id: z.string().min(1, 'Video ID is required'),
 });
 
 const ChannelIdParamSchema = z.object({
-  channelId: z.cuid(),
+  channelId: z.string().min(1, 'Channel ID is required'),
 });
 
 export class VideoIdParamDto extends createZodDto(VideoIdParamSchema) {}

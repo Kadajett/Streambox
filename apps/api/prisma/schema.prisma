@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
 }
 
 // ============================================
@@ -79,6 +79,7 @@ enum ModerationStatus {
 
 model Video {
   id               String           @id @default(cuid())
+  slug             String           @unique // URL-friendly identifier
   title            String
   description      String?
   thumbnailUrl     String?          @map("thumbnail_url")

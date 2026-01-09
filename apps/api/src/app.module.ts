@@ -26,6 +26,7 @@ import { ZodError } from 'zod';
 import { VideosModule } from './videos/videos.module';
 import { BullModule } from '@nestjs/bullmq';
 import { StorageService } from './storage/storage.service';
+import { AdminModule } from './admin/admin.module';
 
 // http-exception.filter
 @Catch(HttpException)
@@ -72,6 +73,7 @@ export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
       },
     }),
     VideosModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
