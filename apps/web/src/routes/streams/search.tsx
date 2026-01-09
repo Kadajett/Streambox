@@ -32,7 +32,7 @@ function StreamSearchPage() {
 
   const updateSearch = (updates: Partial<SearchParams>) => {
     navigate({
-      search: (prev) => ({ ...prev, ...updates }),
+      search: (prev: Partial<SearchParams>) => ({ ...prev, ...updates }),
     });
   };
 

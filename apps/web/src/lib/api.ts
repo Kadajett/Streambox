@@ -1,22 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import type { Video, PaginationMeta } from '@streambox/shared-types';
 
-export interface Video {
-  id: string;
-  title: string;
-  description: string | null;
-  thumbnailUrl: string | null;
-  videoUrl: string | null;
-  duration: number | null;
-  status: 'draft' | 'processing' | 'ready' | 'failed';
-  visibility: 'public' | 'unlisted' | 'private';
-  viewCount: number;
-  likeCount: number;
-  dislikeCount: number;
-  channelId: string;
-  publishedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export interface ApiResponse<T> {
   data: T;
@@ -24,12 +8,7 @@ export interface ApiResponse<T> {
 
 export interface PaginatedResponse<T> {
   data: T[];
-  meta: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
+  meta: PaginationMeta;
 }
 
 export async function fetchVideo(videoId: string): Promise<Video> {
