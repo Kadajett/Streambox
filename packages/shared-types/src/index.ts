@@ -285,3 +285,42 @@ export {
   type HealthCheckResponse,
   type SimpleHealthResponse,
 } from './schemas/health';
+
+// Transcoder
+export {
+  // Constants
+  DEFAULT_QUALITY_PRESETS,
+  TRANSCODER_ERRORS,
+  // Schemas
+  VideoMetadataSchema,
+  QualityPresetNameSchema,
+  QualityPresetSchema,
+  TranscodeProgressSchema,
+  TranscodeJobDataSchema,
+  ThumbnailOptionsSchema,
+  SpriteSheetOptionsSchema,
+  SpriteSheetResultSchema,
+  VideoEncoderSchema,
+  AudioEncoderSchema,
+  EncodingOptionsSchema,
+  TranscoderConfigSchema,
+  RedisConfigSchema,
+  QueueConfigSchema,
+  // Types
+  type VideoMetadata,
+  type QualityPresetName,
+  type QualityPreset,
+  type TranscodeProgress,
+  type TranscodeJobData,
+  type ThumbnailOptions,
+  type SpriteSheetOptions,
+  type SpriteSheetResult,
+  type VideoEncoder,
+  type AudioEncoder,
+  type EncodingOptions,
+  type TranscoderConfig,
+  type RedisConfig,
+  type QueueConfig,
+  type TranscoderErrorCode,
+  type TranscoderErrorMessage,
+} from './schemas/transcoder';

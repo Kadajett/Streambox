@@ -12,14 +12,14 @@ export const COMMENT_CONTENT_MAX = 2000;
 
 // Base comment fields
 export const CommentBaseSchema = z.object({
-  id: z.string().cuid(),
+  id: z.cuid(),
   content: z
     .string()
     .min(COMMENT_CONTENT_MIN, 'Comment cannot be empty')
     .max(COMMENT_CONTENT_MAX, `Comment must be at most ${COMMENT_CONTENT_MAX} characters`),
-  userId: z.string().cuid(),
-  videoId: z.string().cuid(),
-  parentId: z.string().cuid().nullable(), // null for top-level comments
+  userId: z.cuid(),
+  videoId: z.cuid(),
+  parentId: z.cuid().nullable(), // null for top-level comments
   likeCount: z.number().int().nonnegative(),
 });
 
@@ -54,7 +54,7 @@ export const CreateCommentRequestSchema = z.object({
     .string()
     .min(COMMENT_CONTENT_MIN, 'Comment cannot be empty')
     .max(COMMENT_CONTENT_MAX, `Comment must be at most ${COMMENT_CONTENT_MAX} characters`),
-  parentId: z.string().cuid().optional(), // for replies
+  parentId: z.cuid().optional(), // for replies
 });
 export type CreateCommentRequest = z.infer<typeof CreateCommentRequestSchema>;
 
@@ -84,7 +84,7 @@ export type CommentsQuery = z.infer<typeof CommentsQuerySchema>;
 
 // Replies query (for loading more replies)
 export const RepliesQuerySchema = PaginationQuerySchema.extend({
-  parentId: z.string().cuid(),
+  parentId: z.cuid(),
 });
 export type RepliesQuery = z.infer<typeof RepliesQuerySchema>;
 

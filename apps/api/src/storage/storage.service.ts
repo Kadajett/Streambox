@@ -59,6 +59,19 @@ export class StorageService implements OnModuleInit {
     const thumbnail = this.getThumbnailPath(videoId);
     const sprite = this.getSpritePath(videoId);
 
+    // Delete raw file(s) - find any files matching videoId prefix
+    try {
+      const rawFiles = await fs.promises.readdir(this.rawDir);
+      const videoRawFiles = rawFiles.filter((f) => f.startsWith(`${videoId}-`));
+      await Promise.all(
+        videoRawFiles.map((f) =>
+          fs.promises.unlink(path.join(this.rawDir, f)).catch(() => {})
+        )
+      );
+    } catch {
+      // Directory might not exist
+    }
+
     // Delete HLS directory
     await fs.promises.rm(hlsDir, { recursive: true, force: true });
 

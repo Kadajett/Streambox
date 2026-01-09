@@ -8,10 +8,10 @@ import { ChannelWithStatsSchema } from './channel';
 
 // Subscription entity
 export const SubscriptionSchema = z.object({
-  id: z.string().cuid(),
-  userId: z.string().cuid(),
-  channelId: z.string().cuid(),
-  createdAt: z.string().datetime(),
+  id: z.cuid(),
+  userId: z.cuid(),
+  channelId: z.cuid(),
+  createdAt: z.iso.datetime(),
 });
 export type Subscription = z.infer<typeof SubscriptionSchema>;
 
@@ -50,7 +50,7 @@ export type SubscriptionResponse = z.infer<typeof SubscriptionResponseSchema>;
 // Subscription status check response
 export const SubscriptionStatusSchema = z.object({
   isSubscribed: z.boolean(),
-  subscribedAt: z.string().datetime().nullable(),
+  subscribedAt: z.iso.datetime().nullable(),
 });
 export type SubscriptionStatus = z.infer<typeof SubscriptionStatusSchema>;
 

@@ -83,6 +83,9 @@ model Video {
   description      String?
   thumbnailUrl     String?          @map("thumbnail_url")
   videoUrl         String?          @map("video_url")
+  hlsPath          String?          @map("hls_path")
+  spriteUrl        String?          @map("sprite_url")
+  vttPath          String?          @map("vtt_path")
   duration         Int? // Duration in seconds
   status           VideoStatus      @default(draft)
   visibility       VideoVisibility  @default(private)

@@ -14,7 +14,7 @@ export const DISPLAY_NAME_MAX = 50;
 
 // Base user fields (without password)
 export const UserBaseSchema = z.object({
-  id: z.string().cuid(),
+  id: z.cuid(),
   email: z.string().email('Invalid email address'),
   username: z
     .string()
@@ -43,7 +43,7 @@ export type UserProfile = z.infer<typeof UserProfileSchema>;
 
 // Partial user for comments/nested views
 export const UserSummarySchema = z.object({
-  id: z.string().cuid(),
+  id: z.cuid(),
   username: z.string(),
   displayName: z.string().nullable(),
   avatarUrl: z.string().url().nullable(),
@@ -52,7 +52,7 @@ export type UserSummary = z.infer<typeof UserSummarySchema>;
 
 // JWT payload (what's encoded in the token)
 export const JwtPayloadSchema = z.object({
-  sub: z.string().cuid(), // User ID
+  sub: z.cuid(), // User ID
   email: z.string().email(),
   iat: z.number().int().optional(),
   exp: z.number().int().optional(),
@@ -61,7 +61,7 @@ export type JwtPayload = z.infer<typeof JwtPayloadSchema>;
 
 // Current user from JWT (attached to request)
 export const CurrentUserSchema = z.object({
-  id: z.string().cuid(),
+  id: z.cuid(),
   email: z.string().email(),
 });
 export type CurrentUser = z.infer<typeof CurrentUserSchema>;

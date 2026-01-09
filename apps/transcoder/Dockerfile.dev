@@ -1,0 +1,77 @@
+# CPU-only Dockerfile for local development
+# Uses software encoding (libx264) - slower but works on any machine
+
+FROM node:20-slim AS base
+
+# Install FFmpeg
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm@9
+
+# Copy workspace config
+COPY pnpm-workspace.yaml ./
+COPY package.json ./
+COPY pnpm-lock.yaml ./
+
+# Copy shared packages
+COPY packages/shared-types/package.json ./packages/shared-types/
+COPY packages/shared-types/src ./packages/shared-types/src
+COPY packages/shared-types/tsconfig.json ./packages/shared-types/
+
+# Copy transcoder package
+COPY apps/transcoder/package.json ./apps/transcoder/
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy transcoder source
+COPY apps/transcoder/src ./apps/transcoder/src
+COPY apps/transcoder/tsconfig.json ./apps/transcoder/
+
+# Copy Prisma schema from API (for client generation)
+COPY apps/api/prisma ./apps/api/prisma
+
+# Generate Prisma client
+RUN cd apps/api && npx prisma generate
+
+# Build shared-types
+RUN cd packages/shared-types && pnpm build
+
+# Build transcoder
+RUN cd apps/transcoder && pnpm build
+
+# Development stage with hot reload
+FROM node:20-slim AS development
+
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+RUN npm install -g pnpm@9
+
+# Copy built node_modules
+COPY --from=base /app/node_modules ./node_modules
+COPY --from=base /app/apps/transcoder/node_modules ./apps/transcoder/node_modules
+COPY --from=base /app/packages/shared-types ./packages/shared-types
+COPY --from=base /app/apps/api/node_modules/.prisma ./node_modules/.prisma
+
+# Copy source for development (volumes will override in compose)
+COPY apps/transcoder ./apps/transcoder
+
+# Create data directories
+RUN mkdir -p /data/raw /data/hls /data/thumbnails
+
+ENV NODE_ENV=development
+ENV USE_GPU=false
+ENV DATA_DIR=/data
+
+WORKDIR /app/apps/transcoder
+
+CMD ["pnpm", "dev"]

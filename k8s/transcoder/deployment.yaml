@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transcoder
+  labels:
+    app: transcoder
+    component: worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: transcoder
+  template:
+    metadata:
+      labels:
+        app: transcoder
+        component: worker
+    spec:
+      containers:
+        - name: transcoder
+          image: streambox/transcoder:latest
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "2"
+              nvidia.com/gpu: "1"
+            limits:
+              memory: "8Gi"
+              cpu: "8"
+              nvidia.com/gpu: "1"
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: USE_GPU
+              value: "true"
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: transcoder-config
+                  key: redis-host
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: transcoder-config
+                  key: redis-port
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: transcoder-secrets
+                  key: database-url
+          volumeMounts:
+            - name: video-data
+              mountPath: /data
+      volumes:
+        - name: video-data
+          persistentVolumeClaim:
+            claimName: video-storage-pvc
+      # Require NVIDIA GPU nodes
+      nodeSelector:
+        nvidia.com/gpu.present: "true"
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: transcoder-config
+data:
+  redis-host: "redis-master"
+  redis-port: "6379"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: transcoder-secrets
+type: Opaque
+stringData:
+  database-url: "postgresql://user:password@postgres:5432/streambox"

@@ -16,7 +16,7 @@ export const CHANNEL_USER_CHANNEL_LIMIT = 5;
 
 // Base channel fields
 export const ChannelBaseSchema = z.object({
-  id: z.string().cuid(),
+  id: z.cuid(),
   name: z
     .string()
     .min(CHANNEL_NAME_MIN, 'Channel name is required')
@@ -32,7 +32,7 @@ export const ChannelBaseSchema = z.object({
   description: z.string().max(CHANNEL_DESCRIPTION_MAX).nullable(),
   bannerUrl: z.string().url().nullable(),
   avatarUrl: z.string().url().nullable(),
-  userId: z.string().cuid(),
+  userId: z.cuid(),
 });
 
 // Full channel entity
@@ -53,7 +53,7 @@ export type ChannelsWithStats = z.infer<typeof ChannelsWithStatsSchema>;
 
 // Channel summary (for lists, nested views)
 export const ChannelSummarySchema = z.object({
-  id: z.string().cuid(),
+  id: z.cuid(),
   name: z.string(),
   handle: z.string(),
   avatarUrl: z.string().url().nullable(),

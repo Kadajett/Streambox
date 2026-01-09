@@ -10,20 +10,20 @@ export type LikeType = z.infer<typeof LikeTypeSchema>;
 
 // Video like entity
 export const VideoLikeSchema = z.object({
-  id: z.string().cuid(),
-  userId: z.string().cuid(),
-  videoId: z.string().cuid(),
+  id: z.cuid(),
+  userId: z.cuid(),
+  videoId: z.cuid(),
   type: LikeTypeSchema,
-  createdAt: z.string().datetime(),
+  createdAt: z.iso.datetime(),
 });
 export type VideoLike = z.infer<typeof VideoLikeSchema>;
 
 // Comment like entity
 export const CommentLikeSchema = z.object({
-  id: z.string().cuid(),
-  userId: z.string().cuid(),
-  commentId: z.string().cuid(),
-  createdAt: z.string().datetime(),
+  id: z.cuid(),
+  userId: z.cuid(),
+  commentId: z.cuid(),
+  createdAt: z.iso.datetime(),
 });
 export type CommentLike = z.infer<typeof CommentLikeSchema>;
 

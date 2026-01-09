@@ -19,7 +19,15 @@ export type VideoStatus = z.infer<typeof VideoStatusSchema>;
 export const VideoVisibilitySchema = z.enum(['public', 'unlisted', 'private']);
 export type VideoVisibility = z.infer<typeof VideoVisibilitySchema>;
 
-// Base video fields
+export const VideoModerationStatusSchema = z.enum([
+  'pending',
+  'approved',
+  'rejected',
+  'manual_review',
+]);
+export type VideoModerationStatus = z.infer<typeof VideoModerationStatusSchema>;
+
+// Base video fields (matches Prisma Video model directly)
 export const VideoBaseSchema = z.object({
   id: z.cuid(),
   title: z
@@ -32,6 +40,9 @@ export const VideoBaseSchema = z.object({
   duration: z.number().int().nonnegative().nullable(), // in seconds
   status: VideoStatusSchema,
   visibility: VideoVisibilitySchema,
+  moderation: VideoModerationStatusSchema, // has @default(pending) in Prisma, never null
+  moderationScore: z.number().nullable(),
+  moderationReason: z.string().nullable(),
   viewCount: z.number().int().nonnegative(),
   likeCount: z.number().int().nonnegative(),
   dislikeCount: z.number().int().nonnegative(),
