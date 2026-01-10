@@ -1,5 +1,5 @@
 import { Worker } from 'bullmq';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@streambox/database';
 import type { TranscodeJobData } from '@streambox/shared-types';
 import { config } from './config.js';
 import { probeVideo, transcodeToHLS } from './ffmpeg/index.js';
@@ -7,8 +7,6 @@ import { generateThumbnail, generateSpriteSheet } from './thumbnails/index.js';
 import { createJobProcessor, updateTranscodeJob } from './jobs/index.js';
 
 export const createWorker = () => {
-  const prisma = new PrismaClient();
-
   const processJob = createJobProcessor({
     prisma,
     probeVideo,

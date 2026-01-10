@@ -12,7 +12,6 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-import { PrismaModule } from './prisma/prisma.module';
 import { ChannelsModule } from './channels/channels.module';
 import type { Request, Response, NextFunction } from 'express';
 import {
@@ -63,7 +62,6 @@ export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
       isGlobal: true,
       envFilePath: '.env',
     }),
-    PrismaModule,
     AuthModule,
     ChannelsModule,
 

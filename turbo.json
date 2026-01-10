@@ -1,8 +1,14 @@
 {
   "$schema": "https://turbo.build/schema.json",
+
   "tasks": {
+    "db:generate": {
+      "cache": true,
+      "inputs": ["prisma/schema.prisma"],
+      "outputs": ["src/generated/**"]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^db:generate", "^build"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "dev": {
@@ -11,10 +17,10 @@
       "outputLogs": "full"
     },
     "typecheck": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^db:generate", "^build"]
     },
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^db:generate", "^build"]
     },
     "lint:fix": {
       "cache": false
@@ -24,7 +30,7 @@
     },
     "format:check": {},
     "check": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^db:generate", "^build"]
     },
     "test": {}
   }

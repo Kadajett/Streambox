@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import Hls, { type Events, type ManifestParsedData, type LevelSwitchedData, type ErrorData, type Level } from 'hls.js';
+import Hls, {
+  type Events,
+  type ManifestParsedData,
+  type LevelSwitchedData,
+  type ErrorData,
+  type Level,
+} from 'hls.js';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -54,19 +60,25 @@ export function VideoPlayer({ src, poster, className }: VideoPlayerProps) {
       hls.loadSource(src);
       hls.attachMedia(video);
 
-      hls.on(Hls.Events.MANIFEST_PARSED, (_event: Events.MANIFEST_PARSED, data: ManifestParsedData) => {
-        setIsLoading(false);
-        const levels = data.levels.map((level: Level, index: number) => ({
-          height: level.height,
-          bitrate: level.bitrate,
-          index,
-        }));
-        setQualityLevels(levels);
-      });
+      hls.on(
+        Hls.Events.MANIFEST_PARSED,
+        (_event: Events.MANIFEST_PARSED, data: ManifestParsedData) => {
+          setIsLoading(false);
+          const levels = data.levels.map((level: Level, index: number) => ({
+            height: level.height,
+            bitrate: level.bitrate,
+            index,
+          }));
+          setQualityLevels(levels);
+        }
+      );
 
-      hls.on(Hls.Events.LEVEL_SWITCHED, (_event: Events.LEVEL_SWITCHED, data: LevelSwitchedData) => {
-        setCurrentQuality(data.level);
-      });
+      hls.on(
+        Hls.Events.LEVEL_SWITCHED,
+        (_event: Events.LEVEL_SWITCHED, data: LevelSwitchedData) => {
+          setCurrentQuality(data.level);
+        }
+      );
 
       hls.on(Hls.Events.ERROR, (_event: Events.ERROR, data: ErrorData) => {
         if (data.fatal) {
@@ -172,7 +184,7 @@ export function VideoPlayer({ src, poster, className }: VideoPlayerProps) {
   };
 
   const formatTime = (seconds: number) => {
-    if (!isFinite(seconds)) return '0:00';
+    if (!Number.isFinite(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;

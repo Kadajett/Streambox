@@ -1,4 +1,4 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@streambox/database';
 import type { TranscodeStatus } from '@streambox/shared-types';
 
 export type TranscodeJobStatus = TranscodeStatus;

@@ -11,7 +11,14 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountIndexRouteImport } from './routes/account/index'
 import { Route as WatchSlugRouteImport } from './routes/watch/$slug'
+import { Route as ChannelHandleRouteImport } from './routes/channel/$handle'
+import { Route as AuthRegisterRouteImport } from './routes/auth/register'
+import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AccountSettingsRouteImport } from './routes/account/settings'
+import { Route as AccountProfileRouteImport } from './routes/account/profile'
+import { Route as AccountChannelsRouteImport } from './routes/account/channels'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -23,40 +30,134 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AccountIndexRoute = AccountIndexRouteImport.update({
+  id: '/account/',
+  path: '/account/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WatchSlugRoute = WatchSlugRouteImport.update({
   id: '/watch/$slug',
   path: '/watch/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChannelHandleRoute = ChannelHandleRouteImport.update({
+  id: '/channel/$handle',
+  path: '/channel/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/auth/register',
+  path: '/auth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/auth/login',
+  path: '/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountSettingsRoute = AccountSettingsRouteImport.update({
+  id: '/account/settings',
+  path: '/account/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountProfileRoute = AccountProfileRouteImport.update({
+  id: '/account/profile',
+  path: '/account/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountChannelsRoute = AccountChannelsRouteImport.update({
+  id: '/account/channels',
+  path: '/account/channels',
   getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account/channels': typeof AccountChannelsRoute
+  '/account/profile': typeof AccountProfileRoute
+  '/account/settings': typeof AccountSettingsRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/channel/$handle': typeof ChannelHandleRoute
   '/watch/$slug': typeof WatchSlugRoute
+  '/account': typeof AccountIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account/channels': typeof AccountChannelsRoute
+  '/account/profile': typeof AccountProfileRoute
+  '/account/settings': typeof AccountSettingsRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/channel/$handle': typeof ChannelHandleRoute
   '/watch/$slug': typeof WatchSlugRoute
+  '/account': typeof AccountIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/account/channels': typeof AccountChannelsRoute
+  '/account/profile': typeof AccountProfileRoute
+  '/account/settings': typeof AccountSettingsRoute
+  '/auth/login': typeof AuthLoginRoute
+  '/auth/register': typeof AuthRegisterRoute
+  '/channel/$handle': typeof ChannelHandleRoute
   '/watch/$slug': typeof WatchSlugRoute
+  '/account/': typeof AccountIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/watch/$slug'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/account/channels'
+    | '/account/profile'
+    | '/account/settings'
+    | '/auth/login'
+    | '/auth/register'
+    | '/channel/$handle'
+    | '/watch/$slug'
+    | '/account'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/watch/$slug'
-  id: '__root__' | '/' | '/about' | '/watch/$slug'
+  to:
+    | '/'
+    | '/about'
+    | '/account/channels'
+    | '/account/profile'
+    | '/account/settings'
+    | '/auth/login'
+    | '/auth/register'
+    | '/channel/$handle'
+    | '/watch/$slug'
+    | '/account'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/account/channels'
+    | '/account/profile'
+    | '/account/settings'
+    | '/auth/login'
+    | '/auth/register'
+    | '/channel/$handle'
+    | '/watch/$slug'
+    | '/account/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AccountChannelsRoute: typeof AccountChannelsRoute
+  AccountProfileRoute: typeof AccountProfileRoute
+  AccountSettingsRoute: typeof AccountSettingsRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
+  ChannelHandleRoute: typeof ChannelHandleRoute
   WatchSlugRoute: typeof WatchSlugRoute
+  AccountIndexRoute: typeof AccountIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,11 +176,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/account/': {
+      id: '/account/'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/watch/$slug': {
       id: '/watch/$slug'
       path: '/watch/$slug'
       fullPath: '/watch/$slug'
       preLoaderRoute: typeof WatchSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/channel/$handle': {
+      id: '/channel/$handle'
+      path: '/channel/$handle'
+      fullPath: '/channel/$handle'
+      preLoaderRoute: typeof ChannelHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/register': {
+      id: '/auth/register'
+      path: '/auth/register'
+      fullPath: '/auth/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login': {
+      id: '/auth/login'
+      path: '/auth/login'
+      fullPath: '/auth/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/settings': {
+      id: '/account/settings'
+      path: '/account/settings'
+      fullPath: '/account/settings'
+      preLoaderRoute: typeof AccountSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/profile': {
+      id: '/account/profile'
+      path: '/account/profile'
+      fullPath: '/account/profile'
+      preLoaderRoute: typeof AccountProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account/channels': {
+      id: '/account/channels'
+      path: '/account/channels'
+      fullPath: '/account/channels'
+      preLoaderRoute: typeof AccountChannelsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -88,7 +238,14 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AccountChannelsRoute: AccountChannelsRoute,
+  AccountProfileRoute: AccountProfileRoute,
+  AccountSettingsRoute: AccountSettingsRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
+  ChannelHandleRoute: ChannelHandleRoute,
   WatchSlugRoute: WatchSlugRoute,
+  AccountIndexRoute: AccountIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

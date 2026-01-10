@@ -1,10 +1,14 @@
-import { Button } from '@/components/ui/button';
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { VideoPlayer } from '@/components/video-player';
-import { useVideo } from '@/features/videos/hooks';
-import { getAvatarUrl, getHlsUrl, getThumbnailUrl } from '@/features/videos/api';
-import { parseDuration } from '@/lib/utils';
+import { useVideo, getHlsUrl, getThumbnailUrl } from '@/features/videos';
+import {
+  VideoInfo,
+  ChannelInfo,
+  VideoDescription,
+  WatchPageSkeleton,
+} from '../-components/watch';
 
 export const Route = createFileRoute('/watch/$slug')({
   component: WatchPage,
@@ -15,86 +19,88 @@ function WatchPage() {
   const { data: video, isLoading, error } = useVideo(slug);
 
   if (isLoading) {
-    return (
-      <div className="animate-in fade-in duration-300 space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="h-10 w-32 bg-secondary rounded animate-pulse" />
-        </div>
-        <div className="aspect-video bg-secondary rounded-xl animate-pulse" />
-        <div className="space-y-4">
-          <div className="h-8 bg-secondary rounded w-3/4 animate-pulse" />
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 bg-secondary rounded-full animate-pulse" />
-            <div className="space-y-2">
-              <div className="h-4 bg-secondary rounded w-32 animate-pulse" />
-              <div className="h-3 bg-secondary rounded w-24 animate-pulse" />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <WatchPageSkeleton />;
   }
 
   if (error || !video) {
-    return (
-      <div className="animate-in fade-in duration-300 space-y-6">
-        <Button variant="glow" asChild>
-          <Link to="/" className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            Back to home
-          </Link>
-        </Button>
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-destructive">Video not found</h1>
-          <p className="text-muted-foreground mt-2">
-            The video you're looking for doesn't exist or has been removed.
-          </p>
-        </div>
-      </div>
-    );
+    return <VideoNotFound />;
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 space-y-6">
-      <Button variant="glow" asChild>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+      {/* Main content area */}
+      <div className="max-w-[1280px] mx-auto">
+        {/* Back button */}
+        <div className="mb-4">
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/" className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to home
+            </Link>
+          </Button>
+        </div>
+
+        {/* Video player */}
+        <div className="mb-4">
+          <VideoPlayer
+            src={getHlsUrl(video.id)}
+            poster={getThumbnailUrl(video.thumbnailUrl)}
+            className="aspect-video w-full"
+          />
+        </div>
+
+        {/* Video info section */}
+        <div className="space-y-4 px-4 sm:px-0">
+          {/* Title and actions */}
+          <VideoInfo
+            title={video.title}
+            viewCount={video.viewCount}
+            createdAt={video.createdAt}
+            likeCount={0}
+            dislikeCount={0}
+          />
+
+          {/* Channel info */}
+          <ChannelInfo
+            channel={{
+              id: video.channel.id,
+              handle: video.channel.handle,
+              name: video.channel.name,
+              avatarUrl: video.channel.avatarUrl,
+              subscriberCount: video.channel.subscriberCount,
+            }}
+          />
+
+          {/* Description */}
+          <VideoDescription
+            description={video.description}
+            viewCount={video.viewCount}
+            createdAt={video.createdAt}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function VideoNotFound() {
+  return (
+    <div className="animate-in fade-in duration-300 space-y-6">
+      <Button variant="ghost" size="sm" asChild>
         <Link to="/" className="gap-2">
           <ArrowLeft className="h-4 w-4" />
           Back to home
         </Link>
       </Button>
 
-      <VideoPlayer src={getHlsUrl(video.id)} poster={getThumbnailUrl(video.thumbnailUrl)} />
-
-      <div className="space-y-4">
-        <h1 className="text-2xl font-bold">{video.title}</h1>
-
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <img
-              src={getAvatarUrl(video.channel.avatarUrl)}
-              alt={video.channel.name}
-              className="h-12 w-12 rounded-full object-cover"
-            />
-            <div>
-              <p className="font-medium">{video.channel.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {video.viewCount.toLocaleString()} views
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{parseDuration(video.duration || 0)}</span>
-            <span>•</span>
-            <span>{new Date(video.createdAt).toLocaleDateString()}</span>
-          </div>
-        </div>
-
-        {video.description && (
-          <div className="bg-secondary/50 rounded-xl p-4">
-            <p className="text-sm whitespace-pre-wrap">{video.description}</p>
-          </div>
-        )}
+      <div className="text-center py-16">
+        <h1 className="text-2xl font-bold text-destructive mb-2">Video not found</h1>
+        <p className="text-muted-foreground">
+          The video you're looking for doesn't exist or has been removed.
+        </p>
+        <Button variant="glow" asChild className="mt-6">
+          <Link to="/">Browse videos</Link>
+        </Button>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import type { Job } from 'bullmq';
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@streambox/database';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
 import type {

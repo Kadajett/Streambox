@@ -1,21 +1,10 @@
-// API functions
+// Videos Feature - Public API
 export {
+  videoKeys,
   fetchPublicFeed,
   fetchTrendingVideos,
   fetchVideo,
   fetchChannelVideos,
-  getHlsUrl,
-  getThumbnailUrl,
-  getVideoPageUrl,
-  type VideoFeedParams,
-  type PaginatedResponse,
-} from './api/videos';
-
-// Query keys
-export { videoKeys } from './keys';
-
-// React Query hooks
-export {
   usePublicFeed,
   usePublicFeedInfinite,
   useTrendingVideos,
@@ -23,14 +12,25 @@ export {
   useVideoStreamUrl,
   useVideoThumbnailUrl,
   useChannelVideos,
-} from './hooks/useVideos';
+} from './api';
 
-// Re-export types from shared-types for convenience
 export type {
   Video,
   VideoDetail,
-  VideoSummary,
   VideoWithChannel,
   VideoStatus,
   VideoVisibility,
-} from '@streambox/shared-types';
+  VideoFeedParams,
+  ChannelVideosParams,
+} from './types';
+
+// URL helpers
+import { getHlsUrl, getThumbnailUrl } from '@/lib/api';
+export { getHlsUrl, getThumbnailUrl };
+
+/**
+ * Get video page URL (for routing)
+ */
+export function getVideoPageUrl(video: { id: string; slug?: string | null }): string {
+  return `/watch/${video.slug ?? video.id}`;
+}

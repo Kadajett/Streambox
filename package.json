@@ -2,7 +2,7 @@
   "name": "streambox",
   "private": true,
   "packageManager": "pnpm@10.14.0",
-    "scripts": {
+  "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
     "build:types": "pnpm --filter @streambox/shared-types build",
@@ -13,9 +13,9 @@
     "format:check": "turbo run format:check",
     "check": "turbo run check",
     "test": "turbo run test",
-    "db:generate": "pnpm --filter api db:generate",
-    "db:migrate": "pnpm --filter api db:migrate",
-    "db:studio": "pnpm --filter api db:studio"
+    "db:generate": "pnpm --filter @repo/database db:generate",
+    "db:migrate": "pnpm --filter @repo/database db:migrate",
+    "db:studio": "pnpm --filter @repo/database db:studio"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

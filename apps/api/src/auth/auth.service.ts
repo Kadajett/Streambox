@@ -2,24 +2,20 @@ import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/co
 // biome-ignore lint/style/useImportType: NestJS DI requires runtime reference
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-// biome-ignore lint/style/useImportType: NestJS DI requires runtime reference
-import { PrismaService } from '../prisma/prisma.service';
+import { prisma } from '@streambox/database';
 import type { RegisterDto } from './dto/register.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private readonly jwtService: JwtService,
-    private readonly prisma: PrismaService
-  ) {}
+  constructor(private readonly jwtService: JwtService) {}
 
   async register(
     dto: RegisterDto
   ): Promise<{ user: Omit<User, 'passwordHash'>; accessToken: string; refreshToken: string }> {
     // 1. Check if user exists by email OR username
-    const existingUser = await this.prisma.user.findFirst({
+    const existingUser = await prisma.user.findFirst({
       where: {
         OR: [{ email: dto.email }, { username: dto.username }],
       },
@@ -36,7 +32,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
     // 3. Create user in database
-    const user = await this.prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         email: dto.email,
         username: dto.username,
@@ -73,7 +69,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const user = await this.prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: { email: dto.email },
     });
 

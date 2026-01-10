@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { prisma } from '@streambox/database';
 import { FeedQueryDto } from './dto/feed-query.dto';
 import { Video } from '@prisma/client';
 
 @Injectable()
 export class FeedService {
-  constructor(private prismaService: PrismaService) {}
-
   // public getFeed. Defaults to trending, but allows for subscription updates for authed users.
   async getFeed(
     query: FeedQueryDto,
@@ -23,7 +21,7 @@ export class FeedService {
     const page = query.page || 1;
     const pageSize = query.pageSize || 10;
 
-    const videos = await this.prismaService.video.findMany({
+    const videos = await prisma.video.findMany({
       where: {
         visibility: 'public',
         status: 'ready',
@@ -38,7 +36,7 @@ export class FeedService {
       skip: (page - 1) * pageSize,
     });
 
-    const total = await this.prismaService.video.count({
+    const total = await prisma.video.count({
       where: {
         visibility: 'public',
         status: 'ready',

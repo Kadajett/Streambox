@@ -1,29 +1,46 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-
-import { usePublicFeed } from '@/features';
-import VideoGrid from '@/features/videos/components/VideoGrid';
+import { usePublicFeed } from '@/features/videos';
+import { FeedVideoGrid, CategoryPills } from './-components/home';
 
 export const Route = createFileRoute('/')({
   component: HomePage,
 });
 
 function HomePage() {
-  const { data: feed } = usePublicFeed({ pageSize: 10 });
+  const [category, setCategory] = useState<string>('all');
+
+  const {
+    data: feed,
+    isLoading,
+    error,
+  } = usePublicFeed({
+    pageSize: 20,
+    category: category === 'all' ? undefined : category,
+  });
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader className="text-center">
-          <CardTitle className="text-4xl">Welcome to StreamBox</CardTitle>
-          <CardDescription className="text-lg">
-            Your streaming platform for the modern web.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="text-center text-muted-foreground">
-          {feed ? <VideoGrid videos={feed.data} /> : <p>Loading feed...</p>}
-        </CardContent>
-      </Card>
+      {/* Category Filter */}
+      <div className="sticky top-[64px] z-40 bg-background/95 backdrop-blur-sm border-b border-border/50">
+        <CategoryPills
+          selected={category as 'all'}
+          onSelect={(cat) => setCategory(cat)}
+          className="py-2"
+        />
+      </div>
+
+      {/* Video Feed */}
+      {error ? (
+        <div className="text-center py-16">
+          <p className="text-destructive">Failed to load videos</p>
+          <p className="text-muted-foreground text-sm mt-2">
+            Please try again later
+          </p>
+        </div>
+      ) : (
+        <FeedVideoGrid videos={feed?.data ?? []} isLoading={isLoading} />
+      )}
     </div>
   );
 }

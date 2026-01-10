@@ -51,7 +51,7 @@ class AllExceptionsFilter implements ExceptionFilter {
 }
 
 async function bootstrap() {
-  let app;
+  let app: Awaited<ReturnType<typeof NestFactory.create>>;
   try {
     app = await NestFactory.create(AppModule, {
       logger: ['error', 'warn', 'log', 'debug', 'verbose'],

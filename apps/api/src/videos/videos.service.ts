@@ -6,9 +6,9 @@ import {
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { prisma } from '@streambox/database';
 import { TRANSCODE_QUEUE } from './videos.constants';
 import { StorageService } from 'src/storage/storage.service';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { VIDEO_ERRORS, CHANNEL_ERRORS } from '@streambox/shared-types';
 import type { Video } from '@prisma/client';
 import { CreateVideoDto, UpdateVideoDto } from './dto';
@@ -18,8 +18,7 @@ import { generateSlug, generateUniqueSlug } from 'src/utils/slug';
 export class VideosService {
   constructor(
     @InjectQueue(TRANSCODE_QUEUE) private transcodeQueue: Queue,
-    private storage: StorageService,
-    private prismaService: PrismaService
+    private storage: StorageService
   ) {}
 
   async create(
@@ -28,7 +27,7 @@ export class VideosService {
     userId: string,
     filename: string
   ): Promise<Video> {
-    const channel = await this.prismaService.channel.findUnique({
+    const channel = await prisma.channel.findUnique({
       where: { id: channelId },
     });
 
@@ -43,11 +42,11 @@ export class VideosService {
     // Generate unique slug from title
     const baseSlug = generateSlug(dto.title);
     const slug = await generateUniqueSlug(baseSlug, async (s) => {
-      const existing = await this.prismaService.video.findUnique({ where: { slug: s } });
+      const existing = await prisma.video.findUnique({ where: { slug: s } });
       return existing !== null;
     });
 
-    const video = await this.prismaService.video.create({
+    const video = await prisma.video.create({
       data: {
         title: dto.title,
         slug,
@@ -79,13 +78,13 @@ export class VideosService {
     }
 
     // Try to find by slug first, then by id
-    let video = await this.prismaService.video.findUnique({
+    let video = await prisma.video.findUnique({
       where: { slug: identifier },
       include: { channel: true },
     });
 
     if (!video) {
-      video = await this.prismaService.video.findUnique({
+      video = await prisma.video.findUnique({
         where: { id: identifier },
         include: { channel: true },
       });
@@ -136,7 +135,7 @@ export class VideosService {
     const pageSize = Math.min(options?.pageSize ?? 20, 100); // Cap at 100
     const skip = (page - 1) * pageSize;
 
-    const channel = await this.prismaService.channel.findUnique({
+    const channel = await prisma.channel.findUnique({
       where: { id: channelId },
     });
 
@@ -160,7 +159,7 @@ export class VideosService {
     };
 
     const [videos, total] = await Promise.all([
-      this.prismaService.video.findMany({
+      prisma.video.findMany({
         where: whereClause,
         orderBy: {
           createdAt: 'desc',
@@ -168,7 +167,7 @@ export class VideosService {
         skip,
         take: pageSize,
       }),
-      this.prismaService.video.count({
+      prisma.video.count({
         where: whereClause,
       }),
     ]);
@@ -183,7 +182,7 @@ export class VideosService {
   }
 
   async update(videoId: string, data: UpdateVideoDto, userId: string): Promise<Video> {
-    const video = await this.prismaService.video.findUnique({
+    const video = await prisma.video.findUnique({
       where: { id: videoId },
       include: {
         channel: true,
@@ -198,7 +197,7 @@ export class VideosService {
       throw new ForbiddenException(VIDEO_ERRORS.NOT_VIDEO_OWNER);
     }
 
-    const updatedVideo = await this.prismaService.video.update({
+    const updatedVideo = await prisma.video.update({
       where: { id: video.id },
       data,
     });
@@ -207,7 +206,7 @@ export class VideosService {
   }
 
   async delete(videoId: string, userId: string): Promise<void> {
-    const video = await this.prismaService.video.findUnique({
+    const video = await prisma.video.findUnique({
       where: { id: videoId },
       include: {
         channel: true,
@@ -222,7 +221,7 @@ export class VideosService {
       throw new ForbiddenException(VIDEO_ERRORS.NOT_VIDEO_OWNER);
     }
 
-    await this.prismaService.video.delete({
+    await prisma.video.delete({
       where: { id: video.id },
     });
 
@@ -236,7 +235,7 @@ export class VideosService {
     videoId: string,
     userId: string
   ): Promise<{ status: string; progress: number; error?: string }> {
-    const video = await this.prismaService.video.findUnique({
+    const video = await prisma.video.findUnique({
       where: { id: videoId },
       include: {
         channel: true,
@@ -251,7 +250,7 @@ export class VideosService {
       throw new ForbiddenException(VIDEO_ERRORS.NOT_VIDEO_OWNER);
     }
 
-    const transcodeJob = await this.prismaService.transcodeJob.findFirst({
+    const transcodeJob = await prisma.transcodeJob.findFirst({
       where: {
         videoId: videoId,
       },
