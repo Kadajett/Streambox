@@ -69,11 +69,7 @@ function Header() {
         <div className="hidden sm:flex flex-1 max-w-md mx-auto">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search videos..."
-              className="pl-10 pr-4"
-            />
+            <Input type="search" placeholder="Search videos..." className="pl-10 pr-4" />
           </div>
         </div>
 
@@ -96,6 +92,7 @@ function UserActions() {
   };
 
   const getInitials = (name: string) => {
+    if (!name) return '??';
     return name
       .split(' ')
       .map((n) => n[0])
@@ -141,7 +138,10 @@ function UserActions() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.avatarUrl ?? undefined} alt={user.displayName || user.username} />
+              <AvatarImage
+                src={user.avatarUrl ?? undefined}
+                alt={user.displayName || user.username}
+              />
               <AvatarFallback className="text-xs">
                 {getInitials(user.displayName || user.username)}
               </AvatarFallback>
@@ -154,9 +154,7 @@ function UserActions() {
               <p className="text-sm font-medium leading-none">
                 {user.displayName || user.username}
               </p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {user.email}
-              </p>
+              <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />

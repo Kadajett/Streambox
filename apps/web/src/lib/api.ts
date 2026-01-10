@@ -21,12 +21,14 @@ export interface PaginatedResponse<T> {
 
 class ApiClient {
   private baseUrl: string;
+  private isRefreshing = false;
+  private refreshPromise: Promise<boolean> | null = null;
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit = {}, isRetry = false): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
     const headers: HeadersInit = { ...options.headers };
@@ -37,7 +39,18 @@ class ApiClient {
     const response = await fetch(url, {
       ...options,
       headers,
+      credentials: 'include',
     });
+
+    // Handle 401 - attempt refresh and retry (only once)
+    if (response.status === 401 && !isRetry && !endpoint.includes('/auth/refresh')) {
+      const refreshed = await this.attemptRefresh();
+      if (refreshed) {
+        // Retry the original request
+        return this.request<T>(endpoint, options, true);
+      }
+      // Refresh failed - throw the original 401 error
+    }
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
@@ -49,6 +62,40 @@ class ApiClient {
     }
 
     return response.json();
+  }
+
+  /**
+   * Attempt to refresh the access token.
+   * Returns true if refresh succeeded, false otherwise.
+   * Prevents multiple concurrent refresh requests.
+   */
+  private async attemptRefresh(): Promise<boolean> {
+    // If already refreshing, wait for that to complete
+    if (this.isRefreshing && this.refreshPromise) {
+      return this.refreshPromise;
+    }
+
+    this.isRefreshing = true;
+    this.refreshPromise = this.doRefresh();
+
+    try {
+      return await this.refreshPromise;
+    } finally {
+      this.isRefreshing = false;
+      this.refreshPromise = null;
+    }
+  }
+
+  private async doRefresh(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
   }
 
   async get<T>(endpoint: string, params?: Record<string, string | number | undefined>): Promise<T> {

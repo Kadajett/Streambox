@@ -12,6 +12,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
+import { TokenRefreshInterceptor } from './auth/interceptors';
 import { ChannelsModule } from './channels/channels.module';
 import type { Request, Response, NextFunction } from 'express';
 import {
@@ -86,6 +87,10 @@ export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
     {
       provide: APP_INTERCEPTOR,
       useClass: ZodSerializerInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TokenRefreshInterceptor,
     },
     {
       provide: APP_FILTER,

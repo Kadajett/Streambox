@@ -9,5 +9,8 @@ export type { CurrentUserPayload } from './decorators/current-user.decorator';
 export { JwtStrategy } from './strategies/jwt.strategy';
 export type { JwtPayload } from './strategies/jwt.strategy';
 
+// Interceptors
+export { TokenRefreshInterceptor } from './interceptors';
+
 // DTOs
 export { CurrentUserDto } from './dto/current-user.dto';

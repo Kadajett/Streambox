@@ -14,6 +14,7 @@ import { AppModule } from './app.module';
 import type { Response } from 'express';
 import * as express from 'express';
 import * as path from 'node:path';
+import cookieParser from 'cookie-parser';
 
 @Catch()
 class AllExceptionsFilter implements ExceptionFilter {
@@ -65,6 +66,8 @@ async function bootstrap() {
     }
     process.exit(1);
   }
+
+  app.use(cookieParser());
 
   app.enableCors({
     origin: true,

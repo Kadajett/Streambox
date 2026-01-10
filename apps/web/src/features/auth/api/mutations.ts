@@ -13,10 +13,6 @@ export function useLogin() {
     mutationFn: async (credentials: LoginCredentials): Promise<AuthResponse> => {
       const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
 
-      // Store tokens
-      localStorage.setItem('accessToken', response.accessToken);
-      localStorage.setItem('refreshToken', response.refreshToken);
-
       return response;
     },
     onSuccess: (data) => {
@@ -35,10 +31,6 @@ export function useRegister() {
   return useMutation({
     mutationFn: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
       const response = await apiClient.post<AuthResponse>('/auth/register', credentials);
-
-      // Store tokens
-      localStorage.setItem('accessToken', response.accessToken);
-      localStorage.setItem('refreshToken', response.refreshToken);
 
       return response;
     },
@@ -61,8 +53,6 @@ export function useLogout() {
         await apiClient.post('/auth/logout');
       } finally {
         // Always clear tokens, even if API call fails
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
       }
     },
     onSuccess: () => {
