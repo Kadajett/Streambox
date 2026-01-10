@@ -27,10 +27,7 @@ export const updateTranscodeJob = async (
   }
 };
 
-export const markJobCompleted = async (
-  prisma: PrismaClient,
-  videoId: string
-): Promise<void> => {
+export const markJobCompleted = async (prisma: PrismaClient, videoId: string): Promise<void> => {
   await updateTranscodeJob(prisma, videoId, 'completed', 100);
 };
 

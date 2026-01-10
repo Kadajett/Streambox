@@ -23,7 +23,7 @@ import type { Request } from 'express';
 export class AdminGuard implements CanActivate {
   constructor(
     private readonly configService: ConfigService,
-    private readonly jwtService: JwtService,
+    private readonly jwtService: JwtService
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

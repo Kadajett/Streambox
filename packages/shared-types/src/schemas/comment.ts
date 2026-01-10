@@ -36,9 +36,10 @@ export const CommentWithUserSchema = CommentSchema.extend({
 export type CommentWithUser = z.infer<typeof CommentWithUserSchema>;
 
 // Comment with replies (for threaded view)
-export const CommentWithRepliesSchema: z.ZodType<CommentWithRepliesType> = CommentWithUserSchema.extend({
-  replies: z.lazy(() => z.array(CommentWithRepliesSchema)).optional(),
-});
+export const CommentWithRepliesSchema: z.ZodType<CommentWithRepliesType> =
+  CommentWithUserSchema.extend({
+    replies: z.lazy(() => z.array(CommentWithRepliesSchema)).optional(),
+  });
 type CommentWithRepliesType = z.infer<typeof CommentWithUserSchema> & {
   replies?: CommentWithRepliesType[];
 };

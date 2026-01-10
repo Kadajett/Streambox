@@ -22,14 +22,10 @@ export const createWorker = () => {
     },
   });
 
-  const worker = new Worker<TranscodeJobData>(
-    config.queue.name,
-    processJob,
-    {
-      connection: config.redis,
-      concurrency: config.transcoding.concurrency,
-    }
-  );
+  const worker = new Worker<TranscodeJobData>(config.queue.name, processJob, {
+    connection: config.redis,
+    concurrency: config.transcoding.concurrency,
+  });
 
   worker.on('completed', (job) => {
     console.log(`Job ${job.id} completed for video ${job.data.videoId}`);

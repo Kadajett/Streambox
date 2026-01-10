@@ -1,3 +1,6 @@
+// Load environment variables FIRST before any modules
+import 'dotenv/config';
+
 import {
   Logger,
   type ExceptionFilter,
@@ -7,9 +10,10 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { createZodValidationPipe } from 'nestjs-zod';
 import { AppModule } from './app.module';
 import type { Response } from 'express';
+import * as express from 'express';
+import * as path from 'node:path';
 
 @Catch()
 class AllExceptionsFilter implements ExceptionFilter {
@@ -20,16 +24,12 @@ class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
+      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
 
     // Get the actual error message/response
-    const errorResponse =
-      exception instanceof HttpException ? exception.getResponse() : null;
+    const errorResponse = exception instanceof HttpException ? exception.getResponse() : null;
 
-    const message =
-      exception instanceof Error ? exception.message : 'Unknown error';
+    const message = exception instanceof Error ? exception.message : 'Unknown error';
 
     // Always log the full error with stack trace
     this.logger.error(`[${status}] ${message}`, exception instanceof Error ? exception.stack : '');
@@ -50,24 +50,54 @@ class AllExceptionsFilter implements ExceptionFilter {
   }
 }
 
-// Create validation pipe with strictSchemaDeclaration
-// Throws if a @Body/@Param/@Query parameter isn't a proper ZodDto
-const ZodValidationPipe = createZodValidationPipe({
-  strictSchemaDeclaration: true,
-});
-
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  let app;
+  try {
+    app = await NestFactory.create(AppModule, {
+      logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+    });
+  } catch (error) {
+    console.error('=== BOOTSTRAP ERROR ===');
+    console.error('Failed to create NestJS application:');
+    console.error(error);
+    if (error instanceof Error) {
+      console.error('Stack:', error.stack);
+    }
+    process.exit(1);
+  }
+
+  app.enableCors({
+    origin: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: true,
   });
 
-  // Use ZodValidationPipe for all request validation
-  // This works with DTOs created using createZodDto()
-  app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Serve static HLS files from data directory
+  const dataDir = process.env.DATA_DIR || path.join(process.cwd(), 'data');
+  app.use(
+    '/hls',
+    express.static(path.join(dataDir, 'hls'), {
+      setHeaders: (res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cache-Control', 'public, max-age=31536000');
+      },
+    })
+  );
+  app.use(
+    '/thumbnails',
+    express.static(path.join(dataDir, 'hls', 'thumbnails'), {
+      setHeaders: (res) => {
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+      },
+    })
+  );
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
   Logger.log(`Application running on port ${port}`, 'Bootstrap');
+  Logger.log(`HLS files served from ${path.join(dataDir, 'hls')}`, 'Bootstrap');
 }
 bootstrap();

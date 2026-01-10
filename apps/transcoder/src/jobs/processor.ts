@@ -69,7 +69,9 @@ export const createJobProcessor = (deps: ProcessorDeps) => {
       // Step 1: Probe video metadata
       console.log('Probing video...');
       const metadata = await probeVideo(inputPath);
-      console.log(`  Duration: ${metadata.duration}s, Resolution: ${metadata.width}x${metadata.height}`);
+      console.log(
+        `  Duration: ${metadata.duration}s, Resolution: ${metadata.width}x${metadata.height}`
+      );
 
       // Step 2: Transcode to HLS (0-80%)
       console.log('Transcoding to HLS...');

@@ -173,6 +173,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-live: var(--live);
 
   /* Charts */
   --color-chart-1: var(--chart-1);

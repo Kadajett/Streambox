@@ -25,7 +25,7 @@ import {
   ChannelIdParamDto,
   ChannelVideosQueryDto,
 } from './dto';
-import { CurrentUser, CurrentUserDto, JwtAuthGuard } from 'src/auth';
+import { CurrentUser, CurrentUserDto, JwtAuthGuard, type CurrentUserPayload } from 'src/auth';
 import { VIDEO_ERRORS } from '@streambox/shared-types';
 
 // Allowed video MIME types
@@ -98,7 +98,7 @@ export class VideosController {
    * GET /videos/:id
    */
   @Get('videos/:id')
-  async findById(@Param() params: VideoIdParamDto, @CurrentUser() user?: CurrentUserDto) {
+  async findById(@Param() params: VideoIdParamDto, @CurrentUser() user?: CurrentUserPayload) {
     const video = await this.videosService.findById(params.id, user?.id ?? '');
     return { data: video };
   }
@@ -111,7 +111,7 @@ export class VideosController {
   async findByChannel(
     @Param() params: ChannelIdParamDto,
     @Query() query: ChannelVideosQueryDto,
-    @CurrentUser() user?: CurrentUserDto
+    @CurrentUser() user?: CurrentUserPayload
   ) {
     const result = await this.videosService.findByChannel(params.channelId, user?.id ?? '', {
       page: query.page,

@@ -64,9 +64,7 @@ export class StorageService implements OnModuleInit {
       const rawFiles = await fs.promises.readdir(this.rawDir);
       const videoRawFiles = rawFiles.filter((f) => f.startsWith(`${videoId}-`));
       await Promise.all(
-        videoRawFiles.map((f) =>
-          fs.promises.unlink(path.join(this.rawDir, f)).catch(() => {})
-        )
+        videoRawFiles.map((f) => fs.promises.unlink(path.join(this.rawDir, f)).catch(() => {}))
       );
     } catch {
       // Directory might not exist

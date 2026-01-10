@@ -66,7 +66,9 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto): Promise<{ user: Omit<User, 'passwordHash'>; accessToken: string; refreshToken: string }> {
+  async login(
+    dto: LoginDto
+  ): Promise<{ user: Omit<User, 'passwordHash'>; accessToken: string; refreshToken: string }> {
     if (!dto?.email || !dto?.password) {
       throw new UnauthorizedException('Invalid credentials');
     }

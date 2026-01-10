@@ -30,6 +30,7 @@ export type VideoModerationStatus = z.infer<typeof VideoModerationStatusSchema>;
 // Base video fields (matches Prisma Video model directly)
 export const VideoBaseSchema = z.object({
   id: z.cuid(),
+  slug: z.string().nullable(),
   title: z
     .string()
     .min(VIDEO_TITLE_MIN, 'Title is required')
@@ -71,6 +72,7 @@ export type VideoDetail = z.infer<typeof VideoDetailSchema>;
 // Video summary (for cards/thumbnails)
 export const VideoSummarySchema = z.object({
   id: z.cuid(),
+  slug: z.string().nullable(),
   title: z.string(),
   thumbnailUrl: z.url().nullable(),
   duration: z.number().int().nonnegative().nullable(),

@@ -104,12 +104,12 @@ export type SpriteSheetResult = z.infer<typeof SpriteSheetResultSchema>;
 // ============================================
 
 export const VideoEncoderSchema = z.enum([
-  'libx264',      // CPU H.264
-  'h264_nvenc',   // NVIDIA GPU H.264
-  'h264_vaapi',   // Intel/AMD VAAPI H.264
-  'h264_qsv',     // Intel QuickSync H.264
-  'libx265',      // CPU H.265/HEVC
-  'hevc_nvenc',   // NVIDIA GPU H.265
+  'libx264', // CPU H.264
+  'h264_nvenc', // NVIDIA GPU H.264
+  'h264_vaapi', // Intel/AMD VAAPI H.264
+  'h264_qsv', // Intel QuickSync H.264
+  'libx265', // CPU H.265/HEVC
+  'hevc_nvenc', // NVIDIA GPU H.265
 ]);
 export type VideoEncoder = z.infer<typeof VideoEncoderSchema>;
 
@@ -119,7 +119,19 @@ export type AudioEncoder = z.infer<typeof AudioEncoderSchema>;
 export const EncodingOptionsSchema = z.object({
   videoEncoder: VideoEncoderSchema.default('libx264'),
   audioEncoder: AudioEncoderSchema.default('aac'),
-  preset: z.enum(['ultrafast', 'superfast', 'veryfast', 'faster', 'fast', 'medium', 'slow', 'slower', 'veryslow']).default('medium'),
+  preset: z
+    .enum([
+      'ultrafast',
+      'superfast',
+      'veryfast',
+      'faster',
+      'fast',
+      'medium',
+      'slow',
+      'slower',
+      'veryslow',
+    ])
+    .default('medium'),
   crf: z.number().int().min(0).max(51).optional(), // Constant Rate Factor (lower = better quality)
   maxrate: z.string().optional(), // e.g., '5000k' for VBV buffering
   bufsize: z.string().optional(), // e.g., '10000k' for VBV buffer
@@ -153,15 +165,19 @@ export type RedisConfig = z.infer<typeof RedisConfigSchema>;
 
 export const QueueConfigSchema = z.object({
   name: z.string().default('transcode-queue'),
-  defaultJobOptions: z.object({
-    attempts: z.number().int().positive().default(3),
-    backoff: z.object({
-      type: z.enum(['fixed', 'exponential']).default('exponential'),
-      delay: z.number().int().positive().default(5000), // ms
-    }).optional(),
-    removeOnComplete: z.boolean().default(true),
-    removeOnFail: z.boolean().default(false),
-  }).optional(),
+  defaultJobOptions: z
+    .object({
+      attempts: z.number().int().positive().default(3),
+      backoff: z
+        .object({
+          type: z.enum(['fixed', 'exponential']).default('exponential'),
+          delay: z.number().int().positive().default(5000), // ms
+        })
+        .optional(),
+      removeOnComplete: z.boolean().default(true),
+      removeOnFail: z.boolean().default(false),
+    })
+    .optional(),
 });
 export type QueueConfig = z.infer<typeof QueueConfigSchema>;
 

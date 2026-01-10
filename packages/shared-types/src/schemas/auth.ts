@@ -20,9 +20,7 @@ export const RegisterRequestSchema = z.object({
     .min(USERNAME_MIN, `Username must be at least ${USERNAME_MIN} characters`)
     .max(USERNAME_MAX, `Username must be at most ${USERNAME_MAX} characters`)
     .regex(USERNAME_PATTERN, 'Username can only contain letters, numbers, and underscores'),
-  password: z
-    .string()
-    .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`),
+  password: z.string().min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`),
   displayName: z
     .string()
     .max(DISPLAY_NAME_MAX, `Display name must be at most ${DISPLAY_NAME_MAX} characters`)
@@ -46,9 +44,7 @@ export type RefreshTokenRequest = z.infer<typeof RefreshTokenRequestSchema>;
 // Change password request
 export const ChangePasswordRequestSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z
-    .string()
-    .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`),
+  newPassword: z.string().min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`),
 });
 export type ChangePasswordRequest = z.infer<typeof ChangePasswordRequestSchema>;
 
@@ -61,9 +57,7 @@ export type ResetPasswordRequest = z.infer<typeof ResetPasswordRequestSchema>;
 // Confirm reset password (with token)
 export const ConfirmResetPasswordRequestSchema = z.object({
   token: z.string().min(1, 'Token is required'),
-  newPassword: z
-    .string()
-    .min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`),
+  newPassword: z.string().min(PASSWORD_MIN, `Password must be at least ${PASSWORD_MIN} characters`),
 });
 export type ConfirmResetPasswordRequest = z.infer<typeof ConfirmResetPasswordRequestSchema>;
 

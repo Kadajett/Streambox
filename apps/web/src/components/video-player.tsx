@@ -1,16 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import Hls from 'hls.js';
+import Hls, { type Events, type ManifestParsedData, type LevelSwitchedData, type ErrorData, type Level } from 'hls.js';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import {
-  Play,
-  Pause,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Settings,
-} from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize, Settings } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,9 +54,9 @@ export function VideoPlayer({ src, poster, className }: VideoPlayerProps) {
       hls.loadSource(src);
       hls.attachMedia(video);
 
-      hls.on(Hls.Events.MANIFEST_PARSED, (_event, data) => {
+      hls.on(Hls.Events.MANIFEST_PARSED, (_event: Events.MANIFEST_PARSED, data: ManifestParsedData) => {
         setIsLoading(false);
-        const levels = data.levels.map((level, index) => ({
+        const levels = data.levels.map((level: Level, index: number) => ({
           height: level.height,
           bitrate: level.bitrate,
           index,
@@ -71,11 +64,11 @@ export function VideoPlayer({ src, poster, className }: VideoPlayerProps) {
         setQualityLevels(levels);
       });
 
-      hls.on(Hls.Events.LEVEL_SWITCHED, (_event, data) => {
+      hls.on(Hls.Events.LEVEL_SWITCHED, (_event: Events.LEVEL_SWITCHED, data: LevelSwitchedData) => {
         setCurrentQuality(data.level);
       });
 
-      hls.on(Hls.Events.ERROR, (_event, data) => {
+      hls.on(Hls.Events.ERROR, (_event: Events.ERROR, data: ErrorData) => {
         if (data.fatal) {
           setError(`Playback error: ${data.type}`);
           setIsLoading(false);
@@ -86,7 +79,9 @@ export function VideoPlayer({ src, poster, className }: VideoPlayerProps) {
         hls.destroy();
         hlsRef.current = null;
       };
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    }
+
+    if (video.canPlayType('application/vnd.apple.mpegurl')) {
       // Native HLS support (Safari)
       video.src = src;
       setIsLoading(false);
@@ -185,7 +180,12 @@ export function VideoPlayer({ src, poster, className }: VideoPlayerProps) {
 
   if (error) {
     return (
-      <div className={cn('relative bg-black rounded-lg overflow-hidden flex items-center justify-center', className)}>
+      <div
+        className={cn(
+          'relative bg-black rounded-lg overflow-hidden flex items-center justify-center',
+          className
+        )}
+      >
         <p className="text-white text-center p-4">{error}</p>
       </div>
     );
@@ -232,16 +232,12 @@ export function VideoPlayer({ src, poster, className }: VideoPlayerProps) {
           <div className="flex items-center gap-2">
             {/* Play/Pause */}
             <Button
-              variant="ghost"
+              variant="glow"
               size="icon"
               onClick={togglePlay}
               className="text-white hover:bg-white/20"
             >
-              {isPlaying ? (
-                <Pause className="h-5 w-5" />
-              ) : (
-                <Play className="h-5 w-5" />
-              )}
+              {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
             </Button>
 
             {/* Volume */}
@@ -276,11 +272,7 @@ export function VideoPlayer({ src, poster, className }: VideoPlayerProps) {
             {qualityLevels.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-white hover:bg-white/20"
-                  >
+                  <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
                     <Settings className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -289,10 +281,7 @@ export function VideoPlayer({ src, poster, className }: VideoPlayerProps) {
                     Auto {currentQuality === -1 && '✓'}
                   </DropdownMenuItem>
                   {qualityLevels.map((level) => (
-                    <DropdownMenuItem
-                      key={level.index}
-                      onClick={() => setQuality(level.index)}
-                    >
+                    <DropdownMenuItem key={level.index} onClick={() => setQuality(level.index)}>
                       {level.height}p {currentQuality === level.index && '✓'}
                     </DropdownMenuItem>
                   ))}

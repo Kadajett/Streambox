@@ -5,12 +5,10 @@ import { ChannelsService } from './channels.service';
 import {
   ChannelHandleParamDto,
   ChannelIdParamDto,
-  ChannelsWithStatsDto,
   CreateChannelDto,
   UpdateChannelDto,
 } from './dto';
 import { CurrentUser, CurrentUserDto, JwtAuthGuard } from 'src/auth';
-import { ZodResponse } from 'nestjs-zod';
 
 @Controller('channels')
 export class ChannelsController {
