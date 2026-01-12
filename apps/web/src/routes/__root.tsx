@@ -1,5 +1,11 @@
 import { Suspense, lazy } from 'react';
-import { Link, Outlet, createRootRoute, useNavigate } from '@tanstack/react-router';
+import {
+  Link,
+  Outlet,
+  createRootRoute,
+  createRootRouteWithContext,
+  useNavigate,
+} from '@tanstack/react-router';
 import { Search, Upload, User, Settings, Tv, LogOut, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AuthProvider, useAuth } from '@/features/auth';
+import { type RouterContext } from '@/router';
 
 const TanStackRouterDevtools =
   process.env.NODE_ENV === 'production'
@@ -23,7 +30,7 @@ const TanStackRouterDevtools =
         }))
       );
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<RouterContext>()({
   component: RootLayout,
   notFoundComponent: NotFound,
 });
@@ -128,10 +135,12 @@ function UserActions() {
   return (
     <>
       {/* Upload button */}
-      <Button variant="ghost" size="icon" className="hidden sm:flex">
-        <Upload className="h-5 w-5" />
-        <span className="sr-only">Upload video</span>
-      </Button>
+      <Link to="/upload">
+        <Button variant="ghost" size="icon" className="hidden sm:flex">
+          <Upload className="h-5 w-5" />
+          <span className="sr-only">Upload video</span>
+        </Button>
+      </Link>
 
       {/* User dropdown */}
       <DropdownMenu>

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiClient, ApiError } from '@/lib/api';
 import { authKeys } from './keys';
-import type { User } from '../types';
+import type { User } from '@streambox/shared-types';
 
 /**
  * Fetch current authenticated user

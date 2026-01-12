@@ -4,3 +4,7 @@ import { VideoResponseSchema, VideoUploadStatusResponseSchema } from '@streambox
 export class VideoResponseDto extends createZodDto(VideoResponseSchema) {}
 
 export class VideoUploadStatusResponseDto extends createZodDto(VideoUploadStatusResponseSchema) {}
+
+export class VideoTranscodingStatusResponseDto extends createZodDto(
+  VideoUploadStatusResponseSchema.pick({ status: true })
+) {}

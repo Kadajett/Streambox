@@ -58,3 +58,6 @@ coverage
 
 # Project management cache
 .pm/
+
+# video uploads
+apps/storage

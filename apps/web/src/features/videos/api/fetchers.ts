@@ -37,9 +37,7 @@ export async function fetchTrendingVideos(
  * Fetch single video by ID or slug
  */
 export async function fetchVideo(idOrSlug: string): Promise<VideoDetail> {
-  const result = await apiClient.get<{ data: VideoDetail } | VideoDetail>(
-    `/videos/${idOrSlug}`
-  );
+  const result = await apiClient.get<{ data: VideoDetail } | VideoDetail>(`/videos/${idOrSlug}`);
 
   // Handle both wrapped and unwrapped responses
   return 'data' in result ? result.data : result;
@@ -59,4 +57,25 @@ export async function fetchChannelVideos(
     pageSize,
     sortBy,
   });
+}
+
+// ============================================
+export async function uploadChannelVideo(
+  channelId: string,
+  formData: FormData
+): Promise<VideoDetail> {
+  // debugger;
+  console.log(
+    'uploadChannelVideo fetch post called with:',
+    formData.get('title'),
+    formData.get('description'),
+    formData.get('file')
+  );
+  const result = await apiClient.postFormData<{ data: VideoDetail } | VideoDetail>(
+    `/channels/${channelId}/videos`,
+    formData
+  );
+
+  // Handle both wrapped and unwrapped responses
+  return 'data' in result ? result.data : result;
 }

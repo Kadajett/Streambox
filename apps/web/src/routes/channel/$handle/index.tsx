@@ -5,13 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useChannel } from '@/features/channels';
 import { useChannelVideos } from '@/features/videos';
 import { useAuth } from '@/features/auth';
-import {
-  ChannelHeader,
-  ChannelVideoGrid,
-  ChannelPageSkeleton,
-} from './-components';
+import { ChannelHeader, ChannelVideoGrid, ChannelPageSkeleton } from '../-components';
 
-export const Route = createFileRoute('/channel/$handle')({
+export const Route = createFileRoute('/channel/$handle/')({
   component: ChannelPage,
 });
 
@@ -19,10 +15,9 @@ function ChannelPage() {
   const { handle } = Route.useParams();
   const { user } = useAuth();
   const { data: channel, isLoading: channelLoading, error: channelError } = useChannel(handle);
-  const { data: videosData, isLoading: videosLoading } = useChannelVideos(
-    channel?.id ?? '',
-    { enabled: !!channel?.id }
-  );
+  const { data: videosData, isLoading: videosLoading } = useChannelVideos(channel?.id ?? '', {
+    enabled: !!channel?.id,
+  });
 
   if (channelLoading) {
     return <ChannelPageSkeleton />;
@@ -77,9 +72,7 @@ function ChannelPage() {
         </TabsContent>
 
         <TabsContent value="playlists" className="mt-6">
-          <div className="text-center py-16 text-muted-foreground">
-            No playlists yet
-          </div>
+          <div className="text-center py-16 text-muted-foreground">No playlists yet</div>
         </TabsContent>
 
         <TabsContent value="about" className="mt-6">

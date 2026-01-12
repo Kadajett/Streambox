@@ -14,8 +14,7 @@ export const videoKeys = {
 
   // Trending queries
   trending: () => [...videoKeys.all, 'trending'] as const,
-  trendingWithParams: (params: { category?: string }) =>
-    [...videoKeys.trending(), params] as const,
+  trendingWithParams: (params: { category?: string }) => [...videoKeys.trending(), params] as const,
 
   // Single video queries
   details: () => [...videoKeys.all, 'detail'] as const,
@@ -25,4 +24,6 @@ export const videoKeys = {
   channelVideos: () => [...videoKeys.all, 'channel'] as const,
   channelVideosList: (channelId: string, params?: { page?: number }) =>
     [...videoKeys.channelVideos(), channelId, params] as const,
+  videoTranscodingStatus: (videoId: string) =>
+    [...videoKeys.all, videoId, 'transcoding-status'] as const,
 };

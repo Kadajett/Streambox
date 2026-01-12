@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from 'node:path';
+import { join, extname } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { VideosService } from './videos.service';
 import { StorageService } from 'src/storage/storage.service';
@@ -24,9 +24,12 @@ import {
   VideoIdParamDto,
   ChannelIdParamDto,
   ChannelVideosQueryDto,
+  VideoTranscodingStatusResponseDto,
 } from './dto';
 import { CurrentUser, CurrentUserDto, JwtAuthGuard, type CurrentUserPayload } from 'src/auth';
-import { VIDEO_ERRORS } from '@streambox/shared-types';
+import { VIDEO_ERRORS, VideoUploadStatusResponse } from '@streambox/shared-types';
+import { ChannelHandleParamDto } from 'src/channels/dto';
+import { OptionalJwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 // Allowed video MIME types
 const ALLOWED_VIDEO_TYPES = [
@@ -51,14 +54,18 @@ export class VideosController {
    * Upload a new video to a channel
    * POST /channels/:channelId/videos
    */
-  @Post('channels/:channelId/videos')
+  @Post('channels/:handle/videos')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
         destination: (_req, _file, cb) => {
+          const storagePath = process.env.STORAGE_PATH;
+          if (!storagePath) {
+            return cb(new Error('STORAGE_PATH environment variable is not set'), '');
+          }
           // We'll use a temp dir initially, then move via service
-          cb(null, './data/raw');
+          cb(null, join(storagePath, 'raw'));
         },
         filename: (_req, file, cb) => {
           const uniqueSuffix = randomUUID();
@@ -80,7 +87,7 @@ export class VideosController {
   )
   async uploadVideo(
     @CurrentUser() user: CurrentUserDto,
-    @Param() params: ChannelIdParamDto,
+    @Param() params: ChannelHandleParamDto,
     @Body() dto: CreateVideoDto,
     @UploadedFile() file: Express.Multer.File
   ) {
@@ -88,15 +95,43 @@ export class VideosController {
       throw new BadRequestException(VIDEO_ERRORS.INVALID_VIDEO_FILE);
     }
 
-    const video = await this.videosService.create(dto, params.channelId, user.id, file.filename);
+    console.log(
+      'Video Controller',
+      'uploadVideo called with file:',
+      file.originalname,
+      file.filename,
+      'for channel:',
+      params.handle
+    );
+
+    const video = await this.videosService.create(dto, params.handle, user.id, file.filename);
 
     return { data: video };
+  }
+
+  @Get('videos/:id/transcoding-status')
+  @UseGuards(JwtAuthGuard)
+  async checkFileTranscodingStatus(
+    @CurrentUser() user: CurrentUserDto,
+    @Param() params: VideoIdParamDto
+  ): Promise<VideoUploadStatusResponse> {
+    return await this.videosService.getStatus(params.id, user.id);
+  }
+
+  @Get('videos/in-progress-files')
+  @UseGuards(JwtAuthGuard)
+  async getInProgressFilesForChannel(
+    @CurrentUser() user: CurrentUserDto,
+    @Query() query: ChannelHandleParamDto
+  ): Promise<VideoUploadStatusResponse[]> {
+    return await this.videosService.getInProgressFilesForChannel(query.handle, user.id);
   }
 
   /**
    * Get a single video by ID
    * GET /videos/:id
    */
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('videos/:id')
   async findById(@Param() params: VideoIdParamDto, @CurrentUser() user?: CurrentUserPayload) {
     const video = await this.videosService.findById(params.id, user?.id ?? '');
@@ -107,6 +142,7 @@ export class VideosController {
    * Get all videos for a channel (paginated)
    * GET /channels/:channelId/videos
    */
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('channels/:channelId/videos')
   async findByChannel(
     @Param() params: ChannelIdParamDto,

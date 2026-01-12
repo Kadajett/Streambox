@@ -1,12 +1,7 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { getHlsUrl, getThumbnailUrl } from '@/lib/api';
 import { videoKeys } from './keys';
-import {
-  fetchPublicFeed,
-  fetchTrendingVideos,
-  fetchVideo,
-  fetchChannelVideos,
-} from './fetchers';
+import { fetchPublicFeed, fetchTrendingVideos, fetchVideo, fetchChannelVideos } from './fetchers';
 import type { VideoFeedParams } from '../types';
 
 // ============================================
@@ -145,5 +140,22 @@ export function useChannelVideos(channelId: string, options: UseChannelVideosOpt
     queryFn: () => fetchChannelVideos(channelId, { page, pageSize, sortBy }),
     enabled: enabled && !!channelId,
     staleTime: 1000 * 60 * 2,
+  });
+}
+
+// ============================================
+// Channel Video Status Transcoding Progress Hooks
+// ============================================
+
+export function useChannelVideoTranscodingStatus(videoId: string) {
+  return useQuery({
+    queryKey: videoKeys.videoTranscodingStatus(videoId),
+    queryFn: async () => {
+      const response = await fetch(`/api/videos/${videoId}/status`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch video transcoding status');
+      }
+      return response.json();
+    },
   });
 }

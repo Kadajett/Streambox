@@ -11,14 +11,18 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UploadIndexRouteImport } from './routes/upload/index'
 import { Route as AccountIndexRouteImport } from './routes/account/index'
 import { Route as WatchSlugRouteImport } from './routes/watch/$slug'
-import { Route as ChannelHandleRouteImport } from './routes/channel/$handle'
+import { Route as UploadSelectchannelRouteImport } from './routes/upload/selectchannel'
+import { Route as ChannelCreateRouteImport } from './routes/channel/create'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AccountSettingsRouteImport } from './routes/account/settings'
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 import { Route as AccountChannelsRouteImport } from './routes/account/channels'
+import { Route as ChannelHandleIndexRouteImport } from './routes/channel/$handle/index'
+import { Route as ChannelHandleStudioUploadRouteImport } from './routes/channel/$handle/studio/upload'
 
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
@@ -28,6 +32,11 @@ const AboutRoute = AboutRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UploadIndexRoute = UploadIndexRouteImport.update({
+  id: '/upload/',
+  path: '/upload/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AccountIndexRoute = AccountIndexRouteImport.update({
@@ -40,9 +49,14 @@ const WatchSlugRoute = WatchSlugRouteImport.update({
   path: '/watch/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChannelHandleRoute = ChannelHandleRouteImport.update({
-  id: '/channel/$handle',
-  path: '/channel/$handle',
+const UploadSelectchannelRoute = UploadSelectchannelRouteImport.update({
+  id: '/upload/selectchannel',
+  path: '/upload/selectchannel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChannelCreateRoute = ChannelCreateRouteImport.update({
+  id: '/channel/create',
+  path: '/channel/create',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRegisterRoute = AuthRegisterRouteImport.update({
@@ -70,6 +84,17 @@ const AccountChannelsRoute = AccountChannelsRouteImport.update({
   path: '/account/channels',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChannelHandleIndexRoute = ChannelHandleIndexRouteImport.update({
+  id: '/channel/$handle/',
+  path: '/channel/$handle/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChannelHandleStudioUploadRoute =
+  ChannelHandleStudioUploadRouteImport.update({
+    id: '/channel/$handle/studio/upload',
+    path: '/channel/$handle/studio/upload',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,9 +104,13 @@ export interface FileRoutesByFullPath {
   '/account/settings': typeof AccountSettingsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
-  '/channel/$handle': typeof ChannelHandleRoute
+  '/channel/create': typeof ChannelCreateRoute
+  '/upload/selectchannel': typeof UploadSelectchannelRoute
   '/watch/$slug': typeof WatchSlugRoute
   '/account': typeof AccountIndexRoute
+  '/upload': typeof UploadIndexRoute
+  '/channel/$handle': typeof ChannelHandleIndexRoute
+  '/channel/$handle/studio/upload': typeof ChannelHandleStudioUploadRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,9 +120,13 @@ export interface FileRoutesByTo {
   '/account/settings': typeof AccountSettingsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
-  '/channel/$handle': typeof ChannelHandleRoute
+  '/channel/create': typeof ChannelCreateRoute
+  '/upload/selectchannel': typeof UploadSelectchannelRoute
   '/watch/$slug': typeof WatchSlugRoute
   '/account': typeof AccountIndexRoute
+  '/upload': typeof UploadIndexRoute
+  '/channel/$handle': typeof ChannelHandleIndexRoute
+  '/channel/$handle/studio/upload': typeof ChannelHandleStudioUploadRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,9 +137,13 @@ export interface FileRoutesById {
   '/account/settings': typeof AccountSettingsRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
-  '/channel/$handle': typeof ChannelHandleRoute
+  '/channel/create': typeof ChannelCreateRoute
+  '/upload/selectchannel': typeof UploadSelectchannelRoute
   '/watch/$slug': typeof WatchSlugRoute
   '/account/': typeof AccountIndexRoute
+  '/upload/': typeof UploadIndexRoute
+  '/channel/$handle/': typeof ChannelHandleIndexRoute
+  '/channel/$handle/studio/upload': typeof ChannelHandleStudioUploadRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -118,9 +155,13 @@ export interface FileRouteTypes {
     | '/account/settings'
     | '/auth/login'
     | '/auth/register'
-    | '/channel/$handle'
+    | '/channel/create'
+    | '/upload/selectchannel'
     | '/watch/$slug'
     | '/account'
+    | '/upload'
+    | '/channel/$handle'
+    | '/channel/$handle/studio/upload'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,9 +171,13 @@ export interface FileRouteTypes {
     | '/account/settings'
     | '/auth/login'
     | '/auth/register'
-    | '/channel/$handle'
+    | '/channel/create'
+    | '/upload/selectchannel'
     | '/watch/$slug'
     | '/account'
+    | '/upload'
+    | '/channel/$handle'
+    | '/channel/$handle/studio/upload'
   id:
     | '__root__'
     | '/'
@@ -142,9 +187,13 @@ export interface FileRouteTypes {
     | '/account/settings'
     | '/auth/login'
     | '/auth/register'
-    | '/channel/$handle'
+    | '/channel/create'
+    | '/upload/selectchannel'
     | '/watch/$slug'
     | '/account/'
+    | '/upload/'
+    | '/channel/$handle/'
+    | '/channel/$handle/studio/upload'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,9 +204,13 @@ export interface RootRouteChildren {
   AccountSettingsRoute: typeof AccountSettingsRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
-  ChannelHandleRoute: typeof ChannelHandleRoute
+  ChannelCreateRoute: typeof ChannelCreateRoute
+  UploadSelectchannelRoute: typeof UploadSelectchannelRoute
   WatchSlugRoute: typeof WatchSlugRoute
   AccountIndexRoute: typeof AccountIndexRoute
+  UploadIndexRoute: typeof UploadIndexRoute
+  ChannelHandleIndexRoute: typeof ChannelHandleIndexRoute
+  ChannelHandleStudioUploadRoute: typeof ChannelHandleStudioUploadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -176,6 +229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/upload/': {
+      id: '/upload/'
+      path: '/upload'
+      fullPath: '/upload'
+      preLoaderRoute: typeof UploadIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/account/': {
       id: '/account/'
       path: '/account'
@@ -190,11 +250,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WatchSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/channel/$handle': {
-      id: '/channel/$handle'
-      path: '/channel/$handle'
-      fullPath: '/channel/$handle'
-      preLoaderRoute: typeof ChannelHandleRouteImport
+    '/upload/selectchannel': {
+      id: '/upload/selectchannel'
+      path: '/upload/selectchannel'
+      fullPath: '/upload/selectchannel'
+      preLoaderRoute: typeof UploadSelectchannelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/channel/create': {
+      id: '/channel/create'
+      path: '/channel/create'
+      fullPath: '/channel/create'
+      preLoaderRoute: typeof ChannelCreateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/register': {
@@ -232,6 +299,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AccountChannelsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/channel/$handle/': {
+      id: '/channel/$handle/'
+      path: '/channel/$handle'
+      fullPath: '/channel/$handle'
+      preLoaderRoute: typeof ChannelHandleIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/channel/$handle/studio/upload': {
+      id: '/channel/$handle/studio/upload'
+      path: '/channel/$handle/studio/upload'
+      fullPath: '/channel/$handle/studio/upload'
+      preLoaderRoute: typeof ChannelHandleStudioUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -243,9 +324,13 @@ const rootRouteChildren: RootRouteChildren = {
   AccountSettingsRoute: AccountSettingsRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
-  ChannelHandleRoute: ChannelHandleRoute,
+  ChannelCreateRoute: ChannelCreateRoute,
+  UploadSelectchannelRoute: UploadSelectchannelRoute,
   WatchSlugRoute: WatchSlugRoute,
   AccountIndexRoute: AccountIndexRoute,
+  UploadIndexRoute: UploadIndexRoute,
+  ChannelHandleIndexRoute: ChannelHandleIndexRoute,
+  ChannelHandleStudioUploadRoute: ChannelHandleStudioUploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

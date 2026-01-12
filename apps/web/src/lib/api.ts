@@ -28,11 +28,15 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}, isRetry = false): Promise<T> {
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    isRetry = false
+  ): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
 
     const headers: HeadersInit = { ...options.headers };
-    if (options.body) {
+    if (options.body && !(options.body instanceof FormData)) {
       (headers as Record<string, string>)['Content-Type'] = 'application/json';
     }
 
@@ -116,10 +120,23 @@ class ApiClient {
     return this.request<T>(url, { method: 'GET' });
   }
 
-  async post<T>(endpoint: string, body?: unknown): Promise<T> {
+  async post<T>(
+    endpoint: string,
+    body?: unknown,
+    p0?: { headers: { 'Content-Type': string } }
+  ): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: body ? JSON.stringify(body) : undefined,
+      ...p0,
+    });
+  }
+
+  async postFormData<T>(endpoint: string, formData: FormData): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include',
     });
   }
 

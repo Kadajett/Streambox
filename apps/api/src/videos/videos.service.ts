@@ -9,9 +9,9 @@ import { Queue } from 'bullmq';
 import { prisma } from '@streambox/database';
 import { TRANSCODE_QUEUE } from './videos.constants';
 import { StorageService } from 'src/storage/storage.service';
-import { VIDEO_ERRORS, CHANNEL_ERRORS } from '@streambox/shared-types';
+import { VIDEO_ERRORS, CHANNEL_ERRORS, VideoUploadStatusResponse } from '@streambox/shared-types';
 import type { Video } from '@prisma/client';
-import { CreateVideoDto, UpdateVideoDto } from './dto';
+import { CreateVideoDto, UpdateVideoDto, VideoTranscodingStatusResponseDto } from './dto';
 import { generateSlug, generateUniqueSlug } from 'src/utils/slug';
 
 @Injectable()
@@ -23,12 +23,12 @@ export class VideosService {
 
   async create(
     dto: CreateVideoDto,
-    channelId: string,
+    channelHandle: string,
     userId: string,
     filename: string
   ): Promise<Video> {
     const channel = await prisma.channel.findUnique({
-      where: { id: channelId },
+      where: { handle: channelHandle },
     });
 
     if (!channel) {
@@ -213,7 +213,7 @@ export class VideosService {
       },
     });
 
-    if (!video) {
+    if (!video || !video.videoUrl) {
       throw new NotFoundException(VIDEO_ERRORS.VIDEO_NOT_FOUND);
     }
 
@@ -226,15 +226,12 @@ export class VideosService {
     });
 
     // Delete associated files
-    await this.storage.deleteVideoFiles(video.id);
+    await this.storage.deleteVideoFiles(video.id, video.videoUrl);
 
     return;
   }
 
-  async getStatus(
-    videoId: string,
-    userId: string
-  ): Promise<{ status: string; progress: number; error?: string }> {
+  async getStatus(videoId: string, userId: string): Promise<VideoUploadStatusResponse> {
     const video = await prisma.video.findUnique({
       where: { id: videoId },
       include: {
@@ -264,5 +261,45 @@ export class VideosService {
       progress: transcodeJob?.progress ?? 0,
       ...(transcodeJob?.error && { error: transcodeJob.error }),
     };
+  }
+
+  async getInProgressFilesForChannel(
+    handle: string,
+    userId: string
+  ): Promise<VideoUploadStatusResponse[]> {
+    const videos = await prisma.video.findMany({
+      where: {
+        channel: {
+          handle,
+          userId,
+        },
+        status: 'processing',
+      },
+    });
+
+    if (videos.length === 0) {
+      return [];
+    }
+
+    const videoStatuses = await Promise.all(
+      videos.map(async (video) => {
+        const transcodeJob = await prisma.transcodeJob.findFirst({
+          where: {
+            videoId: video.id,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        });
+
+        return {
+          status: video.status,
+          progress: transcodeJob?.progress ?? 0,
+          ...(transcodeJob?.error && { error: transcodeJob.error }),
+        };
+      })
+    );
+
+    return videoStatuses;
   }
 }

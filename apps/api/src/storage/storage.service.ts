@@ -11,7 +11,7 @@ export class StorageService implements OnModuleInit {
   private readonly thumbnailsDir: string;
 
   constructor(private configService: ConfigService) {
-    this.baseDir = this.configService.get<string>('STORAGE_PATH') || './data';
+    this.baseDir = this.configService.get<string>('STORAGE_PATH') || '';
     this.rawDir = path.join(this.baseDir, 'raw');
     this.hlsDir = path.join(this.baseDir, 'hls');
     this.thumbnailsDir = path.join(this.baseDir, 'thumbnails');
@@ -30,7 +30,7 @@ export class StorageService implements OnModuleInit {
 
   // Path for raw uploaded video
   getRawPath(videoId: string, filename: string): string {
-    return path.join(this.rawDir, `${videoId}-${filename}`);
+    return path.join(this.rawDir, filename);
   }
 
   // Directory for HLS output
@@ -54,18 +54,16 @@ export class StorageService implements OnModuleInit {
   }
 
   // Clean up files for a video
-  async deleteVideoFiles(videoId: string): Promise<void> {
+  async deleteVideoFiles(videoId: string, rawFileName?: string): Promise<void> {
     const hlsDir = this.getHlsDir(videoId);
     const thumbnail = this.getThumbnailPath(videoId);
     const sprite = this.getSpritePath(videoId);
 
     // Delete raw file(s) - find any files matching videoId prefix
     try {
-      const rawFiles = await fs.promises.readdir(this.rawDir);
-      const videoRawFiles = rawFiles.filter((f) => f.startsWith(`${videoId}-`));
-      await Promise.all(
-        videoRawFiles.map((f) => fs.promises.unlink(path.join(this.rawDir, f)).catch(() => {}))
-      );
+      if (rawFileName) {
+        await fs.promises.unlink(path.join(this.rawDir, rawFileName)).catch(() => {});
+      }
     } catch {
       // Directory might not exist
     }
