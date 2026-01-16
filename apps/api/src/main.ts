@@ -72,8 +72,8 @@ class AllExceptionsFilter implements ExceptionFilter {
       ...(errorResponse && typeof errorResponse === 'object'
         ? errorResponse
         : {
-            message: isProduction && status === 500 ? 'Internal server error' : message,
-          }),
+          message: isProduction && status === 500 ? 'Internal server error' : message,
+        }),
     });
   }
 }
@@ -102,7 +102,7 @@ async function bootstrap() {
   app.use(cookieParser());
 
   app.enableCors({
-    origin: true,
+    origin: [process.env.FRONTEND_URL || 'http://localhost:3000', 'http://localhost:5173'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   });
