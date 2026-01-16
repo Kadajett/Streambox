@@ -17,7 +17,6 @@ import {
 import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { VideosModule } from './videos/videos.module';
 import { BullModule } from '@nestjs/bullmq';
-import { StorageService } from './storage/storage.service';
 import { AdminModule } from './admin/admin.module';
 import { FeedModule } from './feed/feed.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
@@ -74,7 +73,6 @@ import { AllExceptionsFilter } from './filters';
       provide: APP_INTERCEPTOR,
       useClass: TokenRefreshInterceptor,
     },
-    StorageService,
   ],
 })
 export class AppModule implements NestModule {
