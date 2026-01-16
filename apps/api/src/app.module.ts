@@ -21,13 +21,14 @@ import {
   ZodSerializationException,
   ZodSchemaDeclarationException,
 } from 'nestjs-zod';
-import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, BaseExceptionFilter } from '@nestjs/core';
+import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, APP_GUARD, BaseExceptionFilter } from '@nestjs/core';
 import { ZodError } from 'zod';
 import { VideosModule } from './videos/videos.module';
 import { BullModule } from '@nestjs/bullmq';
 import { StorageService } from './storage/storage.service';
 import { AdminModule } from './admin/admin.module';
 import { FeedModule } from './feed/feed.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 // http-exception.filter
 @Catch(HttpException)
@@ -63,6 +64,14 @@ export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
       isGlobal: true,
       envFilePath: '.env',
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          limit: 100,
+          ttl: 60_000,
+        },
+      ],
+    }),
     AuthModule,
     ChannelsModule,
 
@@ -79,6 +88,10 @@ export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
   controllers: [AppController],
   providers: [
     AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
     { provide: APP_FILTER, useClass: ZodSchemaDeclarationExceptionFilter },
     {
       provide: APP_PIPE,
