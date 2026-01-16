@@ -24,6 +24,7 @@ export class FeedService {
     const videos = await prisma.video.findMany({
       where: {
         visibility: 'public',
+        moderation: 'approved',
         status: 'ready',
       },
       orderBy: {

@@ -1,9 +1,4 @@
 import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  Logger,
   type MiddlewareConsumer,
   Module,
   type NestModule,
@@ -18,11 +13,8 @@ import type { Request, Response, NextFunction } from 'express';
 import {
   ZodValidationPipe,
   ZodSerializerInterceptor,
-  ZodSerializationException,
-  ZodSchemaDeclarationException,
 } from 'nestjs-zod';
-import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, APP_GUARD, BaseExceptionFilter } from '@nestjs/core';
-import { ZodError } from 'zod';
+import { APP_PIPE, APP_INTERCEPTOR, APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { VideosModule } from './videos/videos.module';
 import { BullModule } from '@nestjs/bullmq';
 import { StorageService } from './storage/storage.service';
@@ -30,33 +22,7 @@ import { AdminModule } from './admin/admin.module';
 import { FeedModule } from './feed/feed.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
-// http-exception.filter
-@Catch(HttpException)
-export class HttpExceptionFilter extends BaseExceptionFilter {
-  private readonly logger = new Logger(HttpExceptionFilter.name);
-
-  catch(exception: HttpException, host: ArgumentsHost) {
-    if (exception instanceof ZodSerializationException) {
-      const zodError = exception.getZodError();
-      if (zodError instanceof ZodError) {
-        this.logger.error(`Zod Serialization Error: ${zodError.message}`, zodError.stack);
-      }
-    }
-    super.catch(exception, host);
-  }
-}
-
-@Catch(ZodSchemaDeclarationException)
-export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
-  catch(_exception: ZodSchemaDeclarationException, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
-    response.status(500).json({
-      statusCode: 500,
-      message: 'Missing nestjs-zod schema declaration',
-    });
-  }
-}
+import { AllExceptionsFilter } from './filters';
 
 @Module({
   imports: [
@@ -92,7 +58,10 @@ export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
     },
-    { provide: APP_FILTER, useClass: ZodSchemaDeclarationExceptionFilter },
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    },
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,
@@ -104,10 +73,6 @@ export class ZodSchemaDeclarationExceptionFilter implements ExceptionFilter {
     {
       provide: APP_INTERCEPTOR,
       useClass: TokenRefreshInterceptor,
-    },
-    {
-      provide: APP_FILTER,
-      useClass: HttpExceptionFilter,
     },
     StorageService,
   ],
