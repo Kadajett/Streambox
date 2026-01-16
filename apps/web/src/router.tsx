@@ -8,10 +8,9 @@ export interface RouterContext {
 
 export const router = createRouter({
   routeTree,
-  context: () =>
-    ({
-      queryClient: undefined!,
-    }) as RouterContext,
+  context: {
+    queryClient: undefined!,
+  },
   defaultPreload: 'intent',
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,

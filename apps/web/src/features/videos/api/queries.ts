@@ -1,7 +1,14 @@
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { getHlsUrl, getThumbnailUrl } from '@/lib/api';
 import { videoKeys } from './keys';
-import { fetchPublicFeed, fetchTrendingVideos, fetchVideo, fetchChannelVideos } from './fetchers';
+import {
+  fetchPublicFeed,
+  fetchTrendingVideos,
+  fetchVideo,
+  fetchChannelVideos,
+  fetchVideoStatus,
+  fetchOwnerChannelVideos,
+} from './fetchers';
 import type { VideoFeedParams } from '../types';
 
 // ============================================
@@ -144,18 +151,117 @@ export function useChannelVideos(channelId: string, options: UseChannelVideosOpt
 }
 
 // ============================================
-// Channel Video Status Transcoding Progress Hooks
+// Video Status Polling Hook
 // ============================================
 
-export function useChannelVideoTranscodingStatus(videoId: string) {
-  return useQuery({
+interface UseVideoStatusOptions {
+  enabled?: boolean;
+  /** Polling interval in ms. Set to 0 to disable polling. Default: 3000 */
+  pollInterval?: number;
+  /** Stop polling when video reaches ready/failed status. Default: true */
+  stopOnComplete?: boolean;
+}
+
+/**
+ * Poll video transcoding status
+ * Automatically stops polling when video is ready or failed
+ */
+export function useVideoStatus(videoId: string, options: UseVideoStatusOptions = {}) {
+  const { enabled = true, pollInterval = 3000, stopOnComplete = true } = options;
+
+  const query = useQuery({
     queryKey: videoKeys.videoTranscodingStatus(videoId),
-    queryFn: async () => {
-      const response = await fetch(`/api/videos/${videoId}/status`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch video transcoding status');
+    queryFn: () => fetchVideoStatus(videoId),
+    enabled: enabled && !!videoId,
+    refetchInterval: (query) => {
+      if (!pollInterval) return false;
+      if (stopOnComplete && query.state.data) {
+        const status = query.state.data.status;
+        if (status === 'ready' || status === 'failed') {
+          return false;
+        }
       }
-      return response.json();
+      return pollInterval;
     },
+    staleTime: 1000, // Consider stale after 1 second
   });
+
+  return {
+    ...query,
+    isProcessing: query.data?.status === 'processing',
+    isReady: query.data?.status === 'ready',
+    isFailed: query.data?.status === 'failed',
+    progress: query.data?.progress ?? 0,
+  };
+}
+
+// ============================================
+// Owner Channel Videos Hook (includes all statuses)
+// ============================================
+
+interface UseOwnerChannelVideosOptions {
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  enabled?: boolean;
+}
+
+/**
+ * Fetch all videos for a channel owner (includes processing, pending, etc.)
+ */
+export function useOwnerChannelVideos(
+  channelId: string,
+  options: UseOwnerChannelVideosOptions = {}
+) {
+  const { page = 1, pageSize = 20, sortBy = 'recent', enabled = true } = options;
+
+  return useQuery({
+    queryKey: videoKeys.ownerChannelVideos(channelId, { page }),
+    queryFn: () => fetchOwnerChannelVideos(channelId, { page, pageSize, sortBy }),
+    enabled: enabled && !!channelId,
+    staleTime: 1000 * 30, // 30 seconds - owner needs fresher data
+  });
+}
+
+// ============================================
+// Multi-Video Status Polling Hook
+// ============================================
+
+/**
+ * Poll status for multiple videos at once
+ * Useful for showing progress of multiple uploads
+ */
+export function useMultipleVideoStatuses(videoIds: string[], options: UseVideoStatusOptions = {}) {
+  const { enabled = true, pollInterval = 3000 } = options;
+
+  const queries = videoIds.map((videoId) =>
+    useQuery({
+      queryKey: videoKeys.videoTranscodingStatus(videoId),
+      queryFn: () => fetchVideoStatus(videoId),
+      enabled: enabled && !!videoId,
+      refetchInterval: pollInterval,
+      staleTime: 1000,
+    })
+  );
+
+  const allStatuses = queries.map((q, i) => ({
+    videoId: videoIds[i],
+    status: q.data?.status,
+    progress: q.data?.progress ?? 0,
+    isLoading: q.isLoading,
+    error: q.error,
+  }));
+
+  const processingCount = allStatuses.filter((s) => s.status === 'processing').length;
+  const readyCount = allStatuses.filter((s) => s.status === 'ready').length;
+  const failedCount = allStatuses.filter((s) => s.status === 'failed').length;
+
+  return {
+    statuses: allStatuses,
+    processingCount,
+    readyCount,
+    failedCount,
+    isAnyProcessing: processingCount > 0,
+    isAllComplete: processingCount === 0 && allStatuses.length > 0,
+  };
 }

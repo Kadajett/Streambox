@@ -28,7 +28,6 @@ import {
 } from './dto';
 import { CurrentUser, CurrentUserDto, JwtAuthGuard, type CurrentUserPayload } from 'src/auth';
 import { VIDEO_ERRORS, VideoUploadStatusResponse } from '@streambox/shared-types';
-import { ChannelHandleParamDto } from 'src/channels/dto';
 import { OptionalJwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 // Allowed video MIME types
@@ -54,7 +53,7 @@ export class VideosController {
    * Upload a new video to a channel
    * POST /channels/:channelId/videos
    */
-  @Post('channels/:handle/videos')
+  @Post('channels/:channelId/videos')
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FileInterceptor('file', {
@@ -87,7 +86,7 @@ export class VideosController {
   )
   async uploadVideo(
     @CurrentUser() user: CurrentUserDto,
-    @Param() params: ChannelHandleParamDto,
+    @Param() params: ChannelIdParamDto,
     @Body() dto: CreateVideoDto,
     @UploadedFile() file: Express.Multer.File
   ) {
@@ -101,10 +100,10 @@ export class VideosController {
       file.originalname,
       file.filename,
       'for channel:',
-      params.handle
+      params.channelId
     );
 
-    const video = await this.videosService.create(dto, params.handle, user.id, file.filename);
+    const video = await this.videosService.create(dto, params.channelId, user.id, file.filename);
 
     return { data: video };
   }
@@ -122,9 +121,9 @@ export class VideosController {
   @UseGuards(JwtAuthGuard)
   async getInProgressFilesForChannel(
     @CurrentUser() user: CurrentUserDto,
-    @Query() query: ChannelHandleParamDto
+    @Query() query: ChannelIdParamDto
   ): Promise<VideoUploadStatusResponse[]> {
-    return await this.videosService.getInProgressFilesForChannel(query.handle, user.id);
+    return await this.videosService.getInProgressFilesForChannel(query.channelId, user.id);
   }
 
   /**
@@ -150,6 +149,33 @@ export class VideosController {
     @CurrentUser() user?: CurrentUserPayload
   ) {
     const result = await this.videosService.findByChannel(params.channelId, user?.id ?? '', {
+      page: query.page,
+      pageSize: query.pageSize,
+    });
+
+    return {
+      data: result.videos,
+      meta: {
+        page: result.page,
+        pageSize: result.pageSize,
+        total: result.total,
+        totalPages: result.totalPages,
+      },
+    };
+  }
+
+  /**
+   * Get all videos for owner of the channel (includes non-public videos)
+   * GET /channels/:channelId/videos/all
+   */
+  @UseGuards(JwtAuthGuard)
+  @Get('channels/:channelId/videos/all')
+  async findAllByOwnerChannel(
+    @Param() params: ChannelIdParamDto,
+    @Query() query: ChannelVideosQueryDto,
+    @CurrentUser() user: CurrentUserDto
+  ) {
+    const result = await this.videosService.findAllByOwnerChannel(params.channelId, user.id, {
       page: query.page,
       pageSize: query.pageSize,
     });

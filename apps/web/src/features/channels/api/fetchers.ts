@@ -1,5 +1,12 @@
 import { apiClient, type PaginatedResponse } from '@/lib/api';
-import type { Channel, ChannelWithOwner, CreateChannelInput, UpdateChannelInput } from '../types';
+import type {
+  Channel,
+  ChannelWithStats,
+  CreateChannelRequest,
+  UpdateChannelRequest,
+} from '@streambox/shared-types';
+// ChannelWithOwner is a web-specific extension type
+import type { ChannelWithOwner } from '../types';
 
 /**
  * Fetch a channel by handle (public)
@@ -11,14 +18,14 @@ export async function fetchChannel(handle: string): Promise<ChannelWithOwner> {
 /**
  * Fetch current user's channels (requires auth)
  */
-export async function fetchMyChannels(): Promise<Channel[]> {
+export async function fetchMyChannels(): Promise<ChannelWithStats[]> {
   return apiClient.get('/channels/mine');
 }
 
 /**
  * Create a new channel (requires auth)
  */
-export async function createChannel(input: CreateChannelInput): Promise<Channel> {
+export async function createChannel(input: CreateChannelRequest): Promise<Channel> {
   return apiClient.post('/channels', input);
 }
 
@@ -27,7 +34,7 @@ export async function createChannel(input: CreateChannelInput): Promise<Channel>
  */
 export async function updateChannel(
   channelId: string,
-  input: UpdateChannelInput
+  input: UpdateChannelRequest
 ): Promise<Channel> {
   return apiClient.patch(`/channels/${channelId}`, input);
 }
@@ -42,10 +49,12 @@ export async function deleteChannel(channelId: string): Promise<void> {
 /**
  * List all channels (public)
  */
-export async function fetchChannels(params: {
-  page?: number;
-  pageSize?: number;
-} = {}): Promise<PaginatedResponse<Channel>> {
+export async function fetchChannels(
+  params: {
+    page?: number;
+    pageSize?: number;
+  } = {}
+): Promise<PaginatedResponse<Channel>> {
   const { page = 1, pageSize = 20 } = params;
   return apiClient.get('/api/channels', { page, limit: pageSize });
 }

@@ -1,11 +1,12 @@
 import { createContext, useContext, useCallback, useMemo, type ReactNode } from 'react';
+import type { User, LoginRequest, RegisterRequest } from '@streambox/shared-types';
 import { useCurrentUser } from '../api/queries';
 import { useLogin, useLogout, useRegister } from '../api/mutations';
-import type { User, LoginCredentials, RegisterCredentials, AuthState } from '../types';
+import type { AuthState } from '../types';
 
 interface AuthContextValue extends AuthState {
-  login: (credentials: LoginCredentials) => Promise<void>;
-  register: (credentials: RegisterCredentials) => Promise<void>;
+  login: (credentials: LoginRequest) => Promise<void>;
+  register: (credentials: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -22,14 +23,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logoutMutation = useLogout();
 
   const login = useCallback(
-    async (credentials: LoginCredentials) => {
+    async (credentials: LoginRequest) => {
       await loginMutation.mutateAsync(credentials);
     },
     [loginMutation]
   );
 
   const register = useCallback(
-    async (credentials: RegisterCredentials) => {
+    async (credentials: RegisterRequest) => {
       await registerMutation.mutateAsync(credentials);
     },
     [registerMutation]

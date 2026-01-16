@@ -1,37 +1,26 @@
-// Channel Types - mirroring API responses
+// Re-export types from shared-types
+export type {
+  Channel,
+  ChannelWithStats,
+  ChannelSummary,
+  CreateChannelRequest as CreateChannelInput,
+  UpdateChannelRequest as UpdateChannelInput,
+} from '@streambox/shared-types';
 
-export interface Channel {
-  id: string;
-  handle: string;
-  name: string;
-  description: string | null;
-  avatarUrl: string | null;
-  bannerUrl: string | null;
-  subscriberCount: number;
-  videoCount: number;
-  ownerId: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Import for extending
+import type { ChannelWithStats } from '@streambox/shared-types';
 
-export interface ChannelWithOwner extends Channel {
+// Extended types specific to the web app
+
+/**
+ * Channel with owner details (for public channel page)
+ * Note: API returns userId, which references the owner
+ */
+export interface ChannelWithOwner extends ChannelWithStats {
   owner: {
     id: string;
     username: string;
     displayName: string | null;
     avatarUrl: string | null;
   };
-}
-
-export interface CreateChannelInput {
-  name: string;
-  handle: string;
-  description?: string;
-}
-
-export interface UpdateChannelInput {
-  name?: string;
-  description?: string;
-  avatarUrl?: string;
-  bannerUrl?: string;
 }

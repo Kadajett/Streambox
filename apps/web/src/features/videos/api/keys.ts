@@ -20,10 +20,17 @@ export const videoKeys = {
   details: () => [...videoKeys.all, 'detail'] as const,
   detail: (idOrSlug: string) => [...videoKeys.details(), idOrSlug] as const,
 
-  // Channel video queries
+  // Channel video queries (public)
   channelVideos: () => [...videoKeys.all, 'channel'] as const,
   channelVideosList: (channelId: string, params?: { page?: number }) =>
     [...videoKeys.channelVideos(), channelId, params] as const,
+
+  ownerChannelBaseKey: (channelId: string) => [...videoKeys.all, 'owner', channelId] as const,
+  // Owner channel videos (all statuses)
+  ownerChannelVideos: (channelId: string, params?: { page?: number }) =>
+    [...videoKeys.ownerChannelBaseKey(channelId), params] as const,
+
+  // Video transcoding status
   videoTranscodingStatus: (videoId: string) =>
     [...videoKeys.all, videoId, 'transcoding-status'] as const,
 };

@@ -17,6 +17,8 @@ export {
 
 export type {
   Channel,
+  ChannelWithStats,
+  ChannelSummary,
   ChannelWithOwner,
   CreateChannelInput,
   UpdateChannelInput,

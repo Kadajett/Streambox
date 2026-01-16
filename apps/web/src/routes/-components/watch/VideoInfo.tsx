@@ -26,7 +26,8 @@ export function VideoInfo({
   viewCount,
   createdAt,
   likeCount = 0,
-  dislikeCount = 0,
+  // dislikeCount not currently displayed (YouTube-style)
+  dislikeCount: _dislikeCount = 0,
   className,
 }: VideoInfoProps) {
   const [isLiked, setIsLiked] = useState(false);

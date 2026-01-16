@@ -67,7 +67,6 @@ function WatchPage() {
               handle: video.channel.handle,
               name: video.channel.name,
               avatarUrl: video.channel.avatarUrl,
-              subscriberCount: video.channel.subscriberCount,
             }}
           />
 

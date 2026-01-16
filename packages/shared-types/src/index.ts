@@ -140,6 +140,7 @@ export {
   // Schemas
   VideoStatusSchema,
   VideoVisibilitySchema,
+  VideoModerationStatusSchema,
   VideoBaseSchema,
   VideoSchema,
   VideoWithChannelSchema,
@@ -156,6 +157,7 @@ export {
   // Types
   type VideoStatus,
   type VideoVisibility,
+  type VideoModerationStatus,
   type Video,
   type VideoWithChannel,
   type VideoDetail,

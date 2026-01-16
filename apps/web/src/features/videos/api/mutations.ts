@@ -1,7 +1,5 @@
-import { apiClient } from '@/lib/api';
-import type { VideoDetail } from '@streambox/shared-types';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { uploadChannelVideo } from './fetchers';
+import { uploadChannelVideo, deleteChannelVideo } from './fetchers';
 import { videoKeys } from './keys';
 
 // ============================================
@@ -25,6 +23,21 @@ export function useUploadChannelVideo() {
       // Invalidate any relevant queries, e.g., channel videos or user uploads
       queryClient.invalidateQueries({
         queryKey: videoKeys.channelVideosList(data.channelId),
+      });
+    },
+  });
+}
+
+export function useDeleteChannelVideo(channelId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (videoId: string) => {
+      return deleteChannelVideo(videoId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: videoKeys.ownerChannelBaseKey(channelId),
       });
     },
   });

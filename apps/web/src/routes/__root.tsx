@@ -2,7 +2,6 @@ import { Suspense, lazy } from 'react';
 import {
   Link,
   Outlet,
-  createRootRoute,
   createRootRouteWithContext,
   useNavigate,
 } from '@tanstack/react-router';

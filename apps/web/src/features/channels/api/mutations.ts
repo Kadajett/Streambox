@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { CreateChannelRequest, UpdateChannelRequest } from '@streambox/shared-types';
 import { channelKeys } from './keys';
 import { createChannel, updateChannel, deleteChannel } from './fetchers';
-import type { CreateChannelInput, UpdateChannelInput } from '../types';
 
 /**
  * Create a new channel
@@ -10,7 +10,7 @@ export function useCreateChannel() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: CreateChannelInput) => createChannel(input),
+    mutationFn: (input: CreateChannelRequest) => createChannel(input),
     onSuccess: () => {
       // Invalidate my channels list
       queryClient.invalidateQueries({ queryKey: channelKeys.mine() });
@@ -25,9 +25,9 @@ export function useUpdateChannel() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ channelId, input }: { channelId: string; input: UpdateChannelInput }) =>
+    mutationFn: ({ channelId, input }: { channelId: string; input: UpdateChannelRequest }) =>
       updateChannel(channelId, input),
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Update the channel in cache
       queryClient.invalidateQueries({ queryKey: channelKeys.mine() });
       // Also update the detail cache if handle is known

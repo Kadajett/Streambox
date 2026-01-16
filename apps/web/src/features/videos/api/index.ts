@@ -4,7 +4,10 @@ export {
   fetchTrendingVideos,
   fetchVideo,
   fetchChannelVideos,
+  fetchVideoStatus,
+  fetchOwnerChannelVideos,
 } from './fetchers';
+export type { VideoStatusResponse } from './fetchers';
 export {
   usePublicFeed,
   usePublicFeedInfinite,
@@ -13,4 +16,9 @@ export {
   useVideoStreamUrl,
   useVideoThumbnailUrl,
   useChannelVideos,
+  useVideoStatus,
+  useOwnerChannelVideos,
+  useMultipleVideoStatuses,
 } from './queries';
+
+export { useUploadChannelVideo, useDeleteChannelVideo } from './mutations';

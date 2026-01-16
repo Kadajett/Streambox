@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { useLogin } from '@/features/auth';
-import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/auth/login')({
   component: LoginPage,

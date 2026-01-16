@@ -23,12 +23,12 @@ export class VideosService {
 
   async create(
     dto: CreateVideoDto,
-    channelHandle: string,
+    channelId: string,
     userId: string,
     filename: string
   ): Promise<Video> {
     const channel = await prisma.channel.findUnique({
-      where: { handle: channelHandle },
+      where: { id: channelId },
     });
 
     if (!channel) {
@@ -66,6 +66,59 @@ export class VideosService {
     });
 
     return video;
+  }
+
+  /**
+   * get all videos for channel for owner (includes non-public)
+   */
+  async findAllByOwnerChannel(
+    channelId: string,
+    userId: string,
+    options?: { page?: number; pageSize?: number }
+  ): Promise<{
+    videos: Video[];
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  }> {
+    const page = options?.page ?? 1;
+    const pageSize = Math.min(options?.pageSize ?? 20, 100); // Cap at 100
+    const skip = (page - 1) * pageSize;
+
+    const channel = await prisma.channel.findUnique({
+      where: { id: channelId },
+    });
+
+    if (!channel) {
+      throw new NotFoundException(CHANNEL_ERRORS.CHANNEL_NOT_FOUND);
+    }
+
+    if (channel.userId !== userId) {
+      throw new ForbiddenException(CHANNEL_ERRORS.NOT_CHANNEL_OWNER);
+    }
+
+    const [videos, total] = await Promise.all([
+      prisma.video.findMany({
+        where: { channelId: channel.id },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: pageSize,
+      }),
+      prisma.video.count({
+        where: { channelId: channel.id },
+      }),
+    ]);
+
+    return {
+      videos,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    };
   }
 
   /**
@@ -264,13 +317,13 @@ export class VideosService {
   }
 
   async getInProgressFilesForChannel(
-    handle: string,
+    channelId: string,
     userId: string
   ): Promise<VideoUploadStatusResponse[]> {
     const videos = await prisma.video.findMany({
       where: {
         channel: {
-          handle,
+          id: channelId,
           userId,
         },
         status: 'processing',

@@ -1,9 +1,9 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Settings, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useChannel } from '@/features/channels';
-import { useChannelVideos } from '@/features/videos';
+import { useChannel, type ChannelWithOwner } from '@/features/channels';
+import { useChannelVideos, useOwnerChannelVideos } from '@/features/videos';
 import { useAuth } from '@/features/auth';
 import { ChannelHeader, ChannelVideoGrid, ChannelPageSkeleton } from '../-components';
 
@@ -15,9 +15,24 @@ function ChannelPage() {
   const { handle } = Route.useParams();
   const { user } = useAuth();
   const { data: channel, isLoading: channelLoading, error: channelError } = useChannel(handle);
-  const { data: videosData, isLoading: videosLoading } = useChannelVideos(channel?.id ?? '', {
-    enabled: !!channel?.id,
-  });
+
+  // Check if this is the user's own channel early (for hook selection)
+  const isOwnChannel = !!user && !!channel && user.id === channel.userId;
+
+  // Use different hooks based on ownership
+  // Owner sees all videos (including processing/pending), public sees only approved
+  const { data: ownerVideosData, isLoading: ownerVideosLoading } = useOwnerChannelVideos(
+    channel?.id ?? '',
+    { enabled: isOwnChannel && !!channel?.id }
+  );
+  const { data: publicVideosData, isLoading: publicVideosLoading } = useChannelVideos(
+    channel?.id ?? '',
+    { enabled: !isOwnChannel && !!channel?.id }
+  );
+
+  // Select the appropriate data based on ownership
+  const videosData = isOwnChannel ? ownerVideosData : publicVideosData;
+  const videosLoading = isOwnChannel ? ownerVideosLoading : publicVideosLoading;
 
   if (channelLoading) {
     return <ChannelPageSkeleton />;
@@ -27,19 +42,33 @@ function ChannelPage() {
     return <ChannelNotFound />;
   }
 
-  // Check if this is the user's own channel
-  const isOwnChannel = user?.id === channel.ownerId;
-
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-300 space-y-6">
-      {/* Back button */}
-      <div>
+      {/* Back button and owner actions */}
+      <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" asChild>
           <Link to="/" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
             Back to home
           </Link>
         </Button>
+
+        {isOwnChannel && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/channel/$handle/studio" params={{ handle }}>
+                <Settings className="h-4 w-4 mr-2" />
+                Studio
+              </Link>
+            </Button>
+            <Button variant="glow" size="sm" asChild>
+              <Link to="/channel/$handle/studio/upload" params={{ handle }}>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Channel header */}
@@ -49,8 +78,8 @@ function ChannelPage() {
           handle: channel.handle,
           avatarUrl: channel.avatarUrl,
           description: channel.description,
-          subscriberCount: channel.subscriberCount ?? 0,
-          videoCount: channel.videoCount ?? 0,
+          subscriberCount: channel.subscriberCount,
+          videoCount: channel.videoCount,
         }}
         isOwnChannel={isOwnChannel}
       />
@@ -67,7 +96,13 @@ function ChannelPage() {
           <ChannelVideoGrid
             videos={videosData?.data ?? []}
             isLoading={videosLoading}
-            emptyMessage="This channel hasn't uploaded any videos yet"
+            isOwner={isOwnChannel}
+            channelHandle={handle}
+            emptyMessage={
+              isOwnChannel
+                ? "You haven't uploaded any videos yet"
+                : "This channel hasn't uploaded any videos yet"
+            }
           />
         </TabsContent>
 
@@ -83,18 +118,7 @@ function ChannelPage() {
   );
 }
 
-interface Channel {
-  id: string;
-  name: string;
-  handle: string;
-  description: string | null;
-  avatarUrl: string | null;
-  subscriberCount?: number;
-  videoCount?: number;
-  createdAt: string | Date;
-}
-
-function AboutTab({ channel }: { channel: Channel }) {
+function AboutTab({ channel }: { channel: ChannelWithOwner }) {
   const formatDate = (date: string | Date): string => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',

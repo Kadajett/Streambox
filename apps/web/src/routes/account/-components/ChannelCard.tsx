@@ -11,12 +11,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { Channel } from '@/features/channels';
+import type { ChannelWithStats } from '@streambox/shared-types';
 
 interface ChannelCardProps {
-  channel: Channel;
-  onEdit?: (channel: Channel) => void;
-  onDelete?: (channel: Channel) => void;
+  channel: ChannelWithStats;
+  onEdit?: (channel: ChannelWithStats) => void;
+  onDelete?: (channel: ChannelWithStats) => void;
 }
 
 export function ChannelCard({ channel, onEdit, onDelete }: ChannelCardProps) {
@@ -44,7 +44,7 @@ export function ChannelCard({ channel, onEdit, onDelete }: ChannelCardProps) {
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           {/* Channel Avatar */}
-          <Link to={`/channel/${channel.handle}`}>
+          <Link to="/channel/$handle" params={{ handle: channel.handle }}>
             <Avatar className="h-16 w-16 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
               <AvatarImage src={channel.avatarUrl ?? undefined} alt={channel.name} />
               <AvatarFallback className="text-lg bg-gradient-to-br from-primary/20 to-primary/5">
@@ -58,7 +58,8 @@ export function ChannelCard({ channel, onEdit, onDelete }: ChannelCardProps) {
             <div className="flex items-start justify-between gap-2">
               <div>
                 <Link
-                  to={`/channel/${channel.handle}`}
+                  to="/channel/$handle"
+                  params={{ handle: channel.handle }}
                   className="font-semibold hover:text-primary transition-colors line-clamp-1"
                 >
                   {channel.name}
@@ -76,7 +77,7 @@ export function ChannelCard({ channel, onEdit, onDelete }: ChannelCardProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link to={`/channel/${channel.handle}`} className="flex items-center gap-2">
+                    <Link to="/channel/$handle" params={{ handle: channel.handle }} className="flex items-center gap-2">
                       <ExternalLink className="h-4 w-4" />
                       View channel
                     </Link>
@@ -108,10 +109,10 @@ export function ChannelCard({ channel, onEdit, onDelete }: ChannelCardProps) {
             <div className="flex items-center gap-4 mt-3">
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Video className="h-4 w-4" />
-                <span>{channel.videoCount ?? 0} videos</span>
+                <span>{channel.videoCount} videos</span>
               </div>
               <Badge variant="secondary" className="text-xs">
-                {formatSubscriberCount(channel.subscriberCount ?? 0)} subscribers
+                {formatSubscriberCount(channel.subscriberCount)} subscribers
               </Badge>
             </div>
           </div>

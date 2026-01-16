@@ -22,6 +22,8 @@ import { Route as AccountSettingsRouteImport } from './routes/account/settings'
 import { Route as AccountProfileRouteImport } from './routes/account/profile'
 import { Route as AccountChannelsRouteImport } from './routes/account/channels'
 import { Route as ChannelHandleIndexRouteImport } from './routes/channel/$handle/index'
+import { Route as ChannelHandleStudioRouteImport } from './routes/channel/$handle/studio'
+import { Route as ChannelHandleStudioIndexRouteImport } from './routes/channel/$handle/studio/index'
 import { Route as ChannelHandleStudioUploadRouteImport } from './routes/channel/$handle/studio/upload'
 
 const AboutRoute = AboutRouteImport.update({
@@ -89,11 +91,22 @@ const ChannelHandleIndexRoute = ChannelHandleIndexRouteImport.update({
   path: '/channel/$handle/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChannelHandleStudioRoute = ChannelHandleStudioRouteImport.update({
+  id: '/channel/$handle/studio',
+  path: '/channel/$handle/studio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChannelHandleStudioIndexRoute =
+  ChannelHandleStudioIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ChannelHandleStudioRoute,
+  } as any)
 const ChannelHandleStudioUploadRoute =
   ChannelHandleStudioUploadRouteImport.update({
-    id: '/channel/$handle/studio/upload',
-    path: '/channel/$handle/studio/upload',
-    getParentRoute: () => rootRouteImport,
+    id: '/upload',
+    path: '/upload',
+    getParentRoute: () => ChannelHandleStudioRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -109,8 +122,10 @@ export interface FileRoutesByFullPath {
   '/watch/$slug': typeof WatchSlugRoute
   '/account': typeof AccountIndexRoute
   '/upload': typeof UploadIndexRoute
+  '/channel/$handle/studio': typeof ChannelHandleStudioRouteWithChildren
   '/channel/$handle': typeof ChannelHandleIndexRoute
   '/channel/$handle/studio/upload': typeof ChannelHandleStudioUploadRoute
+  '/channel/$handle/studio/': typeof ChannelHandleStudioIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -127,6 +142,7 @@ export interface FileRoutesByTo {
   '/upload': typeof UploadIndexRoute
   '/channel/$handle': typeof ChannelHandleIndexRoute
   '/channel/$handle/studio/upload': typeof ChannelHandleStudioUploadRoute
+  '/channel/$handle/studio': typeof ChannelHandleStudioIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -142,8 +158,10 @@ export interface FileRoutesById {
   '/watch/$slug': typeof WatchSlugRoute
   '/account/': typeof AccountIndexRoute
   '/upload/': typeof UploadIndexRoute
+  '/channel/$handle/studio': typeof ChannelHandleStudioRouteWithChildren
   '/channel/$handle/': typeof ChannelHandleIndexRoute
   '/channel/$handle/studio/upload': typeof ChannelHandleStudioUploadRoute
+  '/channel/$handle/studio/': typeof ChannelHandleStudioIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -160,8 +178,10 @@ export interface FileRouteTypes {
     | '/watch/$slug'
     | '/account'
     | '/upload'
+    | '/channel/$handle/studio'
     | '/channel/$handle'
     | '/channel/$handle/studio/upload'
+    | '/channel/$handle/studio/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -178,6 +198,7 @@ export interface FileRouteTypes {
     | '/upload'
     | '/channel/$handle'
     | '/channel/$handle/studio/upload'
+    | '/channel/$handle/studio'
   id:
     | '__root__'
     | '/'
@@ -192,8 +213,10 @@ export interface FileRouteTypes {
     | '/watch/$slug'
     | '/account/'
     | '/upload/'
+    | '/channel/$handle/studio'
     | '/channel/$handle/'
     | '/channel/$handle/studio/upload'
+    | '/channel/$handle/studio/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -209,8 +232,8 @@ export interface RootRouteChildren {
   WatchSlugRoute: typeof WatchSlugRoute
   AccountIndexRoute: typeof AccountIndexRoute
   UploadIndexRoute: typeof UploadIndexRoute
+  ChannelHandleStudioRoute: typeof ChannelHandleStudioRouteWithChildren
   ChannelHandleIndexRoute: typeof ChannelHandleIndexRoute
-  ChannelHandleStudioUploadRoute: typeof ChannelHandleStudioUploadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -306,15 +329,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChannelHandleIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/channel/$handle/studio': {
+      id: '/channel/$handle/studio'
+      path: '/channel/$handle/studio'
+      fullPath: '/channel/$handle/studio'
+      preLoaderRoute: typeof ChannelHandleStudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/channel/$handle/studio/': {
+      id: '/channel/$handle/studio/'
+      path: '/'
+      fullPath: '/channel/$handle/studio/'
+      preLoaderRoute: typeof ChannelHandleStudioIndexRouteImport
+      parentRoute: typeof ChannelHandleStudioRoute
+    }
     '/channel/$handle/studio/upload': {
       id: '/channel/$handle/studio/upload'
-      path: '/channel/$handle/studio/upload'
+      path: '/upload'
       fullPath: '/channel/$handle/studio/upload'
       preLoaderRoute: typeof ChannelHandleStudioUploadRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ChannelHandleStudioRoute
     }
   }
 }
+
+interface ChannelHandleStudioRouteChildren {
+  ChannelHandleStudioUploadRoute: typeof ChannelHandleStudioUploadRoute
+  ChannelHandleStudioIndexRoute: typeof ChannelHandleStudioIndexRoute
+}
+
+const ChannelHandleStudioRouteChildren: ChannelHandleStudioRouteChildren = {
+  ChannelHandleStudioUploadRoute: ChannelHandleStudioUploadRoute,
+  ChannelHandleStudioIndexRoute: ChannelHandleStudioIndexRoute,
+}
+
+const ChannelHandleStudioRouteWithChildren =
+  ChannelHandleStudioRoute._addFileChildren(ChannelHandleStudioRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -329,8 +379,8 @@ const rootRouteChildren: RootRouteChildren = {
   WatchSlugRoute: WatchSlugRoute,
   AccountIndexRoute: AccountIndexRoute,
   UploadIndexRoute: UploadIndexRoute,
+  ChannelHandleStudioRoute: ChannelHandleStudioRouteWithChildren,
   ChannelHandleIndexRoute: ChannelHandleIndexRoute,
-  ChannelHandleStudioUploadRoute: ChannelHandleStudioUploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

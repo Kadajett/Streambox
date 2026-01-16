@@ -1,39 +1,29 @@
-// Auth Types
-// These mirror the API responses from the backend
+// Re-export types from shared-types
+export type {
+  User,
+  UserDto,
+  UserSummary,
+  UserProfile,
+} from '@streambox/shared-types';
 
-export interface User {
-  id: string;
-  email: string;
-  username: string;
-  displayName: string | null;
-  avatarUrl: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+export type {
+  AuthResponse,
+  TokenPair as AuthTokens,
+  // Export with both original and aliased names for flexibility
+  LoginRequest,
+  LoginRequest as LoginCredentials,
+  RegisterRequest,
+  RegisterRequest as RegisterCredentials,
+} from '@streambox/shared-types';
 
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
+// Import for use in local types
+import type { User } from '@streambox/shared-types';
 
-export interface AuthResponse {
-  user: User;
-  accessToken: string;
-  refreshToken: string;
-}
+// Web-specific types (UI state, not API responses)
 
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface RegisterCredentials {
-  email: string;
-  username: string;
-  password: string;
-  displayName?: string;
-}
-
+/**
+ * Auth state for the auth context/store
+ */
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;

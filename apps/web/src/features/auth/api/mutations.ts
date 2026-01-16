@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { AuthResponse, LoginRequest, RegisterRequest } from '@streambox/shared-types';
 import { apiClient } from '@/lib/api';
 import { authKeys } from './keys';
-import type { AuthResponse, LoginCredentials, RegisterCredentials } from '../types';
 
 /**
  * Login mutation
@@ -10,7 +10,7 @@ export function useLogin() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (credentials: LoginCredentials): Promise<AuthResponse> => {
+    mutationFn: async (credentials: LoginRequest): Promise<AuthResponse> => {
       const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
 
       return response;
@@ -29,7 +29,7 @@ export function useRegister() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (credentials: RegisterCredentials): Promise<AuthResponse> => {
+    mutationFn: async (credentials: RegisterRequest): Promise<AuthResponse> => {
       const response = await apiClient.post<AuthResponse>('/auth/register', credentials);
 
       return response;

@@ -1,26 +1,39 @@
-import { Video } from 'lucide-react';
+import { Video, Upload } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button';
 import { ChannelVideoCard } from './ChannelVideoCard';
+import type { VideoStatus, VideoModerationStatus, VideoVisibility } from '@streambox/shared-types';
 
-interface Video {
+interface VideoItem {
   id: string;
-  slug: string;
+  slug: string | null;
   title: string;
   thumbnailUrl: string | null;
-  duration: number;
+  duration: number | null;
   viewCount: number;
   createdAt: string | Date;
+  // Owner-only fields
+  status?: VideoStatus;
+  moderation?: VideoModerationStatus;
+  visibility?: VideoVisibility;
 }
 
 interface ChannelVideoGridProps {
-  videos: Video[];
+  videos: VideoItem[];
   isLoading?: boolean;
   emptyMessage?: string;
+  /** When true, shows status badges and owner controls */
+  isOwner?: boolean;
+  /** Channel handle for upload link */
+  channelHandle?: string;
 }
 
 export function ChannelVideoGrid({
   videos,
   isLoading = false,
   emptyMessage = 'No videos yet',
+  isOwner = false,
+  channelHandle,
 }: ChannelVideoGridProps) {
   if (isLoading) {
     return <ChannelVideoGridSkeleton />;
@@ -32,7 +45,15 @@ export function ChannelVideoGrid({
         <div className="mx-auto w-16 h-16 bg-secondary rounded-full flex items-center justify-center mb-4">
           <Video className="h-8 w-8 text-muted-foreground" />
         </div>
-        <p className="text-muted-foreground">{emptyMessage}</p>
+        <p className="text-muted-foreground mb-4">{emptyMessage}</p>
+        {isOwner && channelHandle && (
+          <Button asChild variant="glow">
+            <Link to="/channel/$handle/studio/upload" params={{ handle: channelHandle }}>
+              <Upload className="h-4 w-4 mr-2" />
+              Upload your first video
+            </Link>
+          </Button>
+        )}
       </div>
     );
   }
@@ -40,7 +61,7 @@ export function ChannelVideoGrid({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {videos.map((video) => (
-        <ChannelVideoCard key={video.id} video={video} />
+        <ChannelVideoCard key={video.id} video={video} isOwner={isOwner} />
       ))}
     </div>
   );
