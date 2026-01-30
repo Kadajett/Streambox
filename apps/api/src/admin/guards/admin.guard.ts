@@ -14,7 +14,8 @@ import type { Request } from 'express';
  *
  * 1. Dev Backdoor: Set X-Admin-Key header with ADMIN_SECRET env var
  *    - Quick access for development/testing
- *    - Only works if ADMIN_SECRET is configured
+ *    - Only works if ADMIN_SECRET is configured AND not in production
+ *    - DISABLED in production for security
  *
  * 2. JWT with admin role: Standard JWT auth with user.role === 'admin'
  *    - Production-ready admin access
@@ -28,20 +29,23 @@ export class AdminGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
+    const isProduction = this.configService.get<string>('NODE_ENV') === 'production';
 
-    // Method 1: Dev backdoor via X-Admin-Key header
-    const adminKey = request.headers['x-admin-key'] as string;
-    const adminSecret = this.configService.get<string>('ADMIN_SECRET');
+    // Method 1: Dev backdoor via X-Admin-Key header (DISABLED in production)
+    if (!isProduction) {
+      const adminKey = request.headers['x-admin-key'] as string;
+      const adminSecret = this.configService.get<string>('ADMIN_SECRET');
 
-    if (adminKey && adminSecret && adminKey === adminSecret) {
-      // Backdoor access granted - inject a synthetic admin user
-      (request as any).user = {
-        sub: 'admin-backdoor',
-        email: 'admin@system',
-        role: 'admin',
-        isBackdoor: true,
-      };
-      return true;
+      if (adminKey && adminSecret && adminKey === adminSecret) {
+        // Backdoor access granted - inject a synthetic admin user
+        (request as any).user = {
+          sub: 'admin-backdoor',
+          email: 'admin@system',
+          role: 'admin',
+          isBackdoor: true,
+        };
+        return true;
+      }
     }
 
     // Method 2: Standard JWT auth with admin role check

@@ -27,10 +27,11 @@ describe('AdminGuard', () => {
     };
   });
 
-  it('allows access via X-Admin-Key backdoor when it matches ADMIN_SECRET', async () => {
+  it('allows access via X-Admin-Key backdoor when it matches ADMIN_SECRET (non-production)', async () => {
     (configService.get as jest.Mock).mockImplementation((key: string) => {
       if (key === 'ADMIN_SECRET') return 'secret';
       if (key === 'JWT_SECRET') return 'jwt-secret';
+      if (key === 'NODE_ENV') return 'development';
       return undefined;
     });
 
@@ -40,6 +41,23 @@ describe('AdminGuard', () => {
     await expect(guard.canActivate(createExecutionContext(req))).resolves.toBe(true);
     expect(req.user).toEqual(
       expect.objectContaining({ role: 'admin', isBackdoor: true, sub: 'admin-backdoor' })
+    );
+  });
+
+  it('disables X-Admin-Key backdoor in production environment', async () => {
+    (configService.get as jest.Mock).mockImplementation((key: string) => {
+      if (key === 'ADMIN_SECRET') return 'secret';
+      if (key === 'JWT_SECRET') return 'jwt-secret';
+      if (key === 'NODE_ENV') return 'production';
+      return undefined;
+    });
+
+    const guard = new AdminGuard(configService as ConfigService, jwtService as JwtService);
+    const req: any = { headers: { 'x-admin-key': 'secret' } };
+
+    // In production, backdoor should be disabled, so it should throw UnauthorizedException
+    await expect(guard.canActivate(createExecutionContext(req))).rejects.toBeInstanceOf(
+      UnauthorizedException
     );
   });
 
