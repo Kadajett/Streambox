@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Logger,
   Param,
   Patch,
   Post,
@@ -44,6 +45,8 @@ const MAX_FILE_SIZE = 2 * 1024 * 1024 * 1024;
 
 @Controller()
 export class VideosController {
+  private readonly logger = new Logger(VideosController.name);
+
   constructor(
     private readonly videosService: VideosService,
     private readonly storageService: StorageService
@@ -94,14 +97,7 @@ export class VideosController {
       throw new BadRequestException(VIDEO_ERRORS.INVALID_VIDEO_FILE);
     }
 
-    console.log(
-      'Video Controller',
-      'uploadVideo called with file:',
-      file.originalname,
-      file.filename,
-      'for channel:',
-      params.channelId
-    );
+    this.logger.log(`Upload video: ${file.originalname} for channel ${params.channelId}`);
 
     const video = await this.videosService.create(dto, params.channelId, user.id, file.filename);
 

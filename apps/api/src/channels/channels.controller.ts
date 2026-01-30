@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Patch, Post, UseGuards } from '@nestjs/common';
 // biome-ignore lint/style/useImportType: NestJS DI requires runtime reference
 import { ChannelsService } from './channels.service';
 // biome-ignore lint/style/useImportType: NestJS validation requires runtime class reference
@@ -12,6 +12,8 @@ import { CurrentUser, CurrentUserDto, JwtAuthGuard } from 'src/auth';
 
 @Controller('channels')
 export class ChannelsController {
+  private readonly logger = new Logger(ChannelsController.name);
+
   constructor(private readonly channelsService: ChannelsService) {}
 
   @Post()
@@ -28,7 +30,7 @@ export class ChannelsController {
 
   @Get(':handle')
   async findByHandle(@Param() dto: ChannelHandleParamDto) {
-    console.log('Fetching channel with handle:', dto);
+    this.logger.debug(`Fetching channel with handle: ${dto.handle}`);
     return this.channelsService.findByHandle(dto);
   }
 
@@ -39,7 +41,7 @@ export class ChannelsController {
     @Param() params: ChannelIdParamDto,
     @Body() dto: UpdateChannelDto
   ) {
-    console.log('Updating channel with ID:', params.id, 'with data:', dto);
+    this.logger.debug(`Updating channel ${params.id}`);
     return this.channelsService.updateChannel(params.id, dto, user.id);
   }
 

@@ -1,4 +1,5 @@
 import {
+  Logger,
   type MiddlewareConsumer,
   Module,
   type NestModule,
@@ -78,10 +79,13 @@ import { DatabaseModule } from './database';
   ],
 })
 export class AppModule implements NestModule {
+  private readonly logger = new Logger('HTTP');
+
   configure(consumer: MiddlewareConsumer) {
+    const logger = this.logger;
     consumer
       .apply((req: Request, _res: Response, next: NextFunction) => {
-        console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+        logger.log(`${req.method} ${req.originalUrl}`);
         next();
       })
       .forRoutes('*');
