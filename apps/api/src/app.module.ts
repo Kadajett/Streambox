@@ -24,6 +24,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { AllExceptionsFilter } from './filters';
 import { DatabaseModule } from './database';
+import { AppCacheModule } from './cache';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { DatabaseModule } from './database';
       envFilePath: '.env',
     }),
     DatabaseModule,
+    AppCacheModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {

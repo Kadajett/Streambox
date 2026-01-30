@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Logger, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Logger, Param, Patch, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 // biome-ignore lint/style/useImportType: NestJS DI requires runtime reference
 import { ChannelsService } from './channels.service';
 // biome-ignore lint/style/useImportType: NestJS validation requires runtime class reference
@@ -29,6 +30,8 @@ export class ChannelsController {
   }
 
   @Get(':handle')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(300000) // 5 minutes for channel details
   async findByHandle(@Param() dto: ChannelHandleParamDto) {
     this.logger.debug(`Fetching channel with handle: ${dto.handle}`);
     return this.channelsService.findByHandle(dto);

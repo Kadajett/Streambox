@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Param, Query, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Query, Body, UseGuards, UseInterceptors } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 import { AdminService } from './admin.service';
 import { AdminGuard } from './guards/admin.guard';
 
@@ -12,6 +13,8 @@ export class AdminController {
    * Get admin dashboard statistics
    */
   @Get('stats')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(30000) // 30 seconds for admin stats
   async getStats() {
     return this.adminService.getStats();
   }
