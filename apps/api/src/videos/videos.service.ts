@@ -57,11 +57,17 @@ export class VideosService {
       status: 'processing',
     });
 
-    await this.transcodeQueue.add(TRANSCODE_QUEUE, {
-      videoId: video.id,
-      inputPath: this.storage.getRawPath(video.id, filename),
-      outputDir: this.storage.getHlsDir(video.id),
-    });
+    try {
+      await this.transcodeQueue.add(TRANSCODE_QUEUE, {
+        videoId: video.id,
+        inputPath: this.storage.getRawPath(video.id, filename),
+        outputDir: this.storage.getHlsDir(video.id),
+      });
+    } catch (error) {
+      // Compensating action: delete the video record if queue job fails
+      await this.videoRepository.delete(video.id);
+      throw new BadRequestException('Failed to queue video for processing');
+    }
 
     return video;
   }
@@ -227,12 +233,17 @@ export class VideosService {
       throw new ForbiddenException(VIDEO_ERRORS.NOT_VIDEO_OWNER);
     }
 
+    // Delete database record first (this is the authoritative state)
     await this.videoRepository.delete(video.id);
 
-    // Delete associated files
-    await this.storage.deleteVideoFiles(video.id, video.videoUrl);
-
-    return;
+    // Delete associated files - fire-and-forget with error handling
+    // Orphaned files can be cleaned up later by a maintenance job
+    try {
+      await this.storage.deleteVideoFiles(video.id, video.videoUrl);
+    } catch {
+      // Log failure but don't fail the operation
+      // Orphaned files are preferable to orphaned DB records
+    }
   }
 
   async getStatus(videoId: string, userId: string): Promise<VideoUploadStatusResponse> {

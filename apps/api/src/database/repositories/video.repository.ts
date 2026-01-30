@@ -1,9 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import { prisma } from '@streambox/database';
+import { prisma, type PrismaClient } from '@streambox/database';
 import type { Video, Prisma } from '@prisma/client';
+
+type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 
 @Injectable()
 export class VideoRepository {
+  /**
+   * Execute operations within a transaction
+   * @param fn Function that receives a transaction client
+   */
+  async transaction<T>(fn: (tx: TransactionClient) => Promise<T>): Promise<T> {
+    return prisma.$transaction(fn);
+  }
+
+  /**
+   * Create video within an existing transaction
+   */
+  async createInTransaction(
+    tx: TransactionClient,
+    data: Prisma.VideoCreateInput
+  ): Promise<Video> {
+    return tx.video.create({ data });
+  }
+
+  /**
+   * Delete video within an existing transaction
+   */
+  async deleteInTransaction(tx: TransactionClient, id: string): Promise<Video> {
+    return tx.video.delete({ where: { id } });
+  }
   async findById(id: string): Promise<Video | null> {
     return prisma.video.findUnique({ where: { id } });
   }
