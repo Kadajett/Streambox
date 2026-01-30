@@ -334,25 +334,34 @@ export class VideosService {
       return [];
     }
 
-    const videoStatuses = await Promise.all(
-      videos.map(async (video) => {
-        const transcodeJob = await prisma.transcodeJob.findFirst({
-          where: {
-            videoId: video.id,
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-        });
+    // Batch query: get all transcodeJobs for these videos in one query
+    const videoIds = videos.map((v) => v.id);
+    const transcodeJobs = await prisma.transcodeJob.findMany({
+      where: {
+        videoId: { in: videoIds },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
-        return {
-          status: video.status,
-          progress: transcodeJob?.progress ?? 0,
-          ...(transcodeJob?.error && { error: transcodeJob.error }),
-        };
-      })
-    );
+    // Create a map of videoId -> most recent transcodeJob
+    // Since results are ordered by createdAt desc, the first job for each video is the most recent
+    const jobByVideoId = new Map<string, (typeof transcodeJobs)[0]>();
+    for (const job of transcodeJobs) {
+      if (!jobByVideoId.has(job.videoId)) {
+        jobByVideoId.set(job.videoId, job);
+      }
+    }
 
-    return videoStatuses;
+    // Map videos to their status responses
+    return videos.map((video) => {
+      const transcodeJob = jobByVideoId.get(video.id);
+      return {
+        status: video.status,
+        progress: transcodeJob?.progress ?? 0,
+        ...(transcodeJob?.error && { error: transcodeJob.error }),
+      };
+    });
   }
 }
