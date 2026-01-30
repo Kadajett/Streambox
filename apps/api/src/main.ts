@@ -59,11 +59,21 @@ async function bootstrap() {
     logger.error('STORAGE_DIR environment variable is not set!');
     process.exit(1);
   }
+
+  // CORS for static media files
+  // Default: '*' (wildcard) - intentional for video streaming
+  // - HLS video players on any domain need to fetch .m3u8 playlists and .ts segments
+  // - Enables video embedding on external sites
+  // - Required for CDN distribution
+  // - Mobile apps and smart TVs require cross-origin access
+  // Set STATIC_CORS_ORIGIN to restrict (e.g., 'https://example.com')
+  const staticCorsOrigin = process.env.STATIC_CORS_ORIGIN || '*';
+
   app.use(
     '/hls',
     express.static(path.join(dataDir, 'hls'), {
       setHeaders: (res) => {
-        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Origin', staticCorsOrigin);
         res.setHeader('Cache-Control', 'public, max-age=31536000');
       },
     })
@@ -72,7 +82,7 @@ async function bootstrap() {
     '/thumbnails',
     express.static(path.join(dataDir, 'hls', 'thumbnails'), {
       setHeaders: (res) => {
-        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Origin', staticCorsOrigin);
         res.setHeader('Cache-Control', 'public, max-age=86400');
       },
     })
