@@ -1,14 +1,14 @@
 // Load environment variables FIRST before any modules
 import 'dotenv/config';
 
-import {
-  Logger,
-} from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as express from 'express';
 import * as path from 'node:path';
 import cookieParser from 'cookie-parser';
+
+const logger = new Logger('Bootstrap');
 
 async function bootstrap() {
   let app: Awaited<ReturnType<typeof NestFactory.create>>;
@@ -27,6 +27,20 @@ async function bootstrap() {
     process.exit(1);
   }
 
+  // Enable graceful shutdown hooks
+  app.enableShutdownHooks();
+
+  // Handle shutdown signals
+  const shutdown = async (signal: string) => {
+    logger.log(`Received ${signal}, starting graceful shutdown...`);
+    await app.close();
+    logger.log('Application shut down gracefully');
+    process.exit(0);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
+
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
   app.use(express.raw({ type: 'application/octet-stream', limit: '2gb' }));
@@ -42,7 +56,7 @@ async function bootstrap() {
   // Serve static HLS files from data directory
   const dataDir = process.env.STORAGE_PATH;
   if (!dataDir) {
-    Logger.error('STORAGE_DIR environment variable is not set!', 'Bootstrap');
+    logger.error('STORAGE_DIR environment variable is not set!');
     process.exit(1);
   }
   app.use(
@@ -66,7 +80,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  Logger.log(`Application running on port ${port}`, 'Bootstrap');
-  Logger.log(`HLS files served from ${path.join(dataDir, 'hls')}`, 'Bootstrap');
+  logger.log(`Application running on port ${port}`);
+  logger.log(`HLS files served from ${path.join(dataDir, 'hls')}`);
 }
 bootstrap();
