@@ -1,32 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { prisma } from '@streambox/database';
 import { generateSlug, generateUniqueSlug } from '../utils/slug';
+import { VideoRepository, ChannelRepository, UserRepository } from '../database';
 
 @Injectable()
 export class AdminService {
+  constructor(
+    private readonly videoRepository: VideoRepository,
+    private readonly channelRepository: ChannelRepository,
+    private readonly userRepository: UserRepository
+  ) {}
   /**
    * Get all videos pending moderation
    */
   async getModerationQueue(limit = 50, offset = 0) {
     const [videos, total] = await Promise.all([
-      prisma.video.findMany({
-        where: { moderation: 'pending' },
-        orderBy: { createdAt: 'asc' },
-        take: limit,
-        skip: offset,
-        include: {
-          channel: {
-            select: {
-              id: true,
-              name: true,
-              handle: true,
-            },
-          },
-        },
-      }),
-      prisma.video.count({
-        where: { moderation: 'pending' },
-      }),
+      this.videoRepository.findPendingModeration({ skip: offset, take: limit }),
+      this.videoRepository.countPendingModeration(),
     ]);
 
     return {
@@ -44,20 +33,15 @@ export class AdminService {
    * Approve a video for public viewing
    */
   async approveVideo(videoId: string, approvedBy?: string) {
-    const video = await prisma.video.findUnique({
-      where: { id: videoId },
-    });
+    const video = await this.videoRepository.findById(videoId);
 
     if (!video) {
       throw new NotFoundException('Video not found');
     }
 
-    const updated = await prisma.video.update({
-      where: { id: videoId },
-      data: {
-        moderation: 'approved',
-        moderationReason: approvedBy ? `Approved by ${approvedBy}` : 'Approved',
-      },
+    const updated = await this.videoRepository.update(videoId, {
+      moderation: 'approved',
+      moderationReason: approvedBy ? `Approved by ${approvedBy}` : 'Approved',
     });
 
     return { data: updated };
@@ -67,20 +51,15 @@ export class AdminService {
    * Reject a video
    */
   async rejectVideo(videoId: string, reason?: string, rejectedBy?: string) {
-    const video = await prisma.video.findUnique({
-      where: { id: videoId },
-    });
+    const video = await this.videoRepository.findById(videoId);
 
     if (!video) {
       throw new NotFoundException('Video not found');
     }
 
-    const updated = await prisma.video.update({
-      where: { id: videoId },
-      data: {
-        moderation: 'rejected',
-        moderationReason: reason || (rejectedBy ? `Rejected by ${rejectedBy}` : 'Rejected'),
-      },
+    const updated = await this.videoRepository.update(videoId, {
+      moderation: 'rejected',
+      moderationReason: reason || (rejectedBy ? `Rejected by ${rejectedBy}` : 'Rejected'),
     });
 
     return { data: updated };
@@ -99,13 +78,13 @@ export class AdminService {
       totalChannels,
       totalUsers,
     ] = await Promise.all([
-      prisma.video.count(),
-      prisma.video.count({ where: { moderation: 'pending' } }),
-      prisma.video.count({ where: { moderation: 'approved' } }),
-      prisma.video.count({ where: { moderation: 'rejected' } }),
-      prisma.video.count({ where: { status: 'processing' } }),
-      prisma.channel.count(),
-      prisma.user.count(),
+      this.videoRepository.count(),
+      this.videoRepository.count({ moderation: 'pending' }),
+      this.videoRepository.count({ moderation: 'approved' }),
+      this.videoRepository.count({ moderation: 'rejected' }),
+      this.videoRepository.count({ status: 'processing' }),
+      this.channelRepository.count(),
+      this.userRepository.count(),
     ]);
 
     return {
@@ -127,23 +106,7 @@ export class AdminService {
    * Get a specific video with full details for admin review
    */
   async getVideoForReview(videoId: string) {
-    const video = await prisma.video.findUnique({
-      where: { id: videoId },
-      include: {
-        channel: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                email: true,
-                username: true,
-                displayName: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    const video = await this.videoRepository.findForAdminReview(videoId);
 
     if (!video) {
       throw new NotFoundException('Video not found');
@@ -156,24 +119,18 @@ export class AdminService {
    * Backfill slugs for videos that don't have one
    */
   async backfillSlugs() {
-    const videosWithoutSlug = await prisma.video.findMany({
-      where: { slug: undefined },
-      select: { id: true, title: true },
-    });
+    const videosWithoutSlug = await this.videoRepository.findWithoutSlug();
 
     const results: { id: string; slug: string }[] = [];
 
     for (const video of videosWithoutSlug) {
       const baseSlug = generateSlug(video.title);
       const slug = await generateUniqueSlug(baseSlug, async (s) => {
-        const existing = await prisma.video.findUnique({ where: { slug: s } });
+        const existing = await this.videoRepository.findBySlug(s);
         return existing !== null;
       });
 
-      await prisma.video.update({
-        where: { id: video.id },
-        data: { slug },
-      });
+      await this.videoRepository.update(video.id, { slug });
 
       results.push({ id: video.id, slug });
     }

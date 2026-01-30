@@ -1,13 +1,3 @@
-jest.mock('@streambox/database', () => ({
-  prisma: {
-    user: {
-      findFirst: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-    },
-  },
-}));
-
 jest.mock('bcrypt', () => ({
   hash: jest.fn(),
   compare: jest.fn(),
@@ -16,27 +6,33 @@ jest.mock('bcrypt', () => ({
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import type { JwtService } from '@nestjs/jwt';
 import type { User } from '@prisma/client';
-import { prisma } from '@streambox/database';
 import bcrypt from 'bcrypt';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import type { TokenBlacklistService } from './token-blacklist.service';
+import type { UserRepository } from '../database';
 
-type PrismaMock = {
-  user: {
-    findFirst: jest.Mock;
-    findUnique: jest.Mock;
-    create: jest.Mock;
-  };
-};
+function createMockUserRepository(): jest.Mocked<UserRepository> {
+  return {
+    findById: jest.fn(),
+    findByEmail: jest.fn(),
+    findByEmailOrUsername: jest.fn(),
+    findByIdWithSelect: jest.fn(),
+    create: jest.fn(),
+    createWithSelect: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
+  } as unknown as jest.Mocked<UserRepository>;
+}
 
-function createMockTokenBlacklistService(): TokenBlacklistService {
+function createMockTokenBlacklistService(): jest.Mocked<TokenBlacklistService> {
   return {
     blacklist: jest.fn().mockResolvedValue(undefined),
     isBlacklisted: jest.fn().mockResolvedValue(false),
     blacklistAllForUser: jest.fn().mockResolvedValue(undefined),
     isUserTokenInvalidated: jest.fn().mockResolvedValue(false),
-  } as unknown as TokenBlacklistService;
+  } as unknown as jest.Mocked<TokenBlacklistService>;
 }
 
 function createMockResponse(cookies?: Record<string, string>): Response {
@@ -52,8 +48,8 @@ function createMockResponse(cookies?: Record<string, string>): Response {
 describe('AuthService', () => {
   let service: AuthService;
   let jwtService: Pick<JwtService, 'sign' | 'verify' | 'decode'>;
-  let tokenBlacklist: TokenBlacklistService;
-  let prismaMock: PrismaMock;
+  let tokenBlacklist: jest.Mocked<TokenBlacklistService>;
+  let userRepository: jest.Mocked<UserRepository>;
   let bcryptMock: { hash: jest.Mock; compare: jest.Mock };
 
   beforeEach(() => {
@@ -66,13 +62,13 @@ describe('AuthService', () => {
     };
 
     tokenBlacklist = createMockTokenBlacklistService();
+    userRepository = createMockUserRepository();
 
-    service = new AuthService(jwtService as JwtService, tokenBlacklist);
-
-    prismaMock = prisma as unknown as PrismaMock;
-    prismaMock.user.findFirst.mockReset();
-    prismaMock.user.findUnique.mockReset();
-    prismaMock.user.create.mockReset();
+    service = new AuthService(
+      jwtService as JwtService,
+      tokenBlacklist,
+      userRepository as unknown as UserRepository
+    );
 
     bcryptMock = bcrypt as unknown as typeof bcryptMock;
     bcryptMock.hash.mockReset();
@@ -81,10 +77,10 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('creates a user, sets cookies, returns user', async () => {
-      prismaMock.user.findFirst.mockResolvedValue(null);
+      userRepository.findByEmailOrUsername.mockResolvedValue(null);
       bcryptMock.hash.mockResolvedValue('hashed');
 
-      prismaMock.user.create.mockResolvedValue({
+      userRepository.createWithSelect.mockResolvedValue({
         id: 'u1',
         email: 'a@b.com',
         username: 'alice',
@@ -92,7 +88,7 @@ describe('AuthService', () => {
         avatarUrl: null,
         createdAt: new Date('2026-01-01T00:00:00Z'),
         updatedAt: new Date('2026-01-01T00:00:00Z'),
-      });
+      } as any);
 
       (jwtService.sign as jest.Mock)
         .mockReturnValueOnce('access-token')
@@ -110,11 +106,9 @@ describe('AuthService', () => {
         response
       );
 
-      expect(prismaMock.user.findFirst).toHaveBeenCalledWith({
-        where: { OR: [{ email: 'a@b.com' }, { username: 'alice' }] },
-      });
+      expect(userRepository.findByEmailOrUsername).toHaveBeenCalledWith('a@b.com', 'alice');
       expect(bcryptMock.hash).toHaveBeenCalledWith('password123', 10);
-      expect(prismaMock.user.create).toHaveBeenCalled();
+      expect(userRepository.createWithSelect).toHaveBeenCalled();
 
       expect(response.cookie).toHaveBeenCalledWith(
         'refreshToken',
@@ -137,7 +131,7 @@ describe('AuthService', () => {
     });
 
     it('throws ConflictException when email already registered', async () => {
-      prismaMock.user.findFirst.mockResolvedValue({
+      userRepository.findByEmailOrUsername.mockResolvedValue({
         id: 'u1',
         email: 'a@b.com',
         username: 'someone',
@@ -152,7 +146,7 @@ describe('AuthService', () => {
     });
 
     it('throws ConflictException when username already taken', async () => {
-      prismaMock.user.findFirst.mockResolvedValue({
+      userRepository.findByEmailOrUsername.mockResolvedValue({
         id: 'u1',
         email: 'someone@b.com',
         username: 'alice',
@@ -169,7 +163,7 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('sets cookies and returns user without passwordHash', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
+      userRepository.findByEmail.mockResolvedValue({
         id: 'u1',
         email: 'a@b.com',
         username: 'alice',
@@ -202,7 +196,7 @@ describe('AuthService', () => {
     });
 
     it('throws UnauthorizedException for invalid credentials', async () => {
-      prismaMock.user.findUnique.mockResolvedValue(null);
+      userRepository.findByEmail.mockResolvedValue(null);
 
       await expect(
         service.login({ email: 'a@b.com', password: 'pw' }, createMockResponse())
@@ -210,7 +204,7 @@ describe('AuthService', () => {
     });
 
     it('throws UnauthorizedException when password does not match', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
+      userRepository.findByEmail.mockResolvedValue({
         id: 'u1',
         email: 'a@b.com',
         username: 'alice',
@@ -231,7 +225,7 @@ describe('AuthService', () => {
 
     it('issues new tokens when refresh token is valid', async () => {
       (jwtService.verify as jest.Mock).mockReturnValue({ sub: 'u1', type: 'refresh' });
-      prismaMock.user.findUnique.mockResolvedValue({ id: 'u1', email: 'a@b.com' } as User);
+      userRepository.findById.mockResolvedValue({ id: 'u1', email: 'a@b.com' } as User);
 
       (jwtService.sign as jest.Mock)
         .mockReturnValueOnce('new-access')
@@ -273,11 +267,11 @@ describe('AuthService', () => {
 
   describe('getCurrentUser', () => {
     it('returns user when found', async () => {
-      prismaMock.user.findUnique.mockResolvedValue({
+      userRepository.findByIdWithSelect.mockResolvedValue({
         id: 'u1',
         email: 'a@b.com',
         username: 'alice',
-      });
+      } as any);
 
       await expect(service.getCurrentUser('u1')).resolves.toEqual(
         expect.objectContaining({ id: 'u1', email: 'a@b.com' })
@@ -285,7 +279,7 @@ describe('AuthService', () => {
     });
 
     it('throws UnauthorizedException when user not found', async () => {
-      prismaMock.user.findUnique.mockResolvedValue(null);
+      userRepository.findByIdWithSelect.mockResolvedValue(null);
       await expect(service.getCurrentUser('u1')).rejects.toBeInstanceOf(UnauthorizedException);
     });
   });

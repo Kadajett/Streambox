@@ -5,10 +5,10 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { prisma } from '@streambox/database';
 import type { CreateChannelDto, UpdateChannelDto, ChannelHandleParamDto } from './dto';
 import type { Channel } from '@prisma/client';
 import { CHANNEL_ERRORS, CHANNEL_USER_CHANNEL_LIMIT } from '@streambox/shared-types';
+import { ChannelRepository } from '../database';
 
 // Local type for channel with computed stats
 type ChannelWithStats = Channel & {
@@ -19,11 +19,11 @@ type ChannelWithStats = Channel & {
 
 @Injectable()
 export class ChannelsService {
+  constructor(private readonly channelRepository: ChannelRepository) {}
+
   async createChannel(dto: CreateChannelDto, userId: string): Promise<Channel> {
     // Check if user has reached channel limit
-    const userChannelCount = await prisma.channel.count({
-      where: { user: { id: userId } },
-    });
+    const userChannelCount = await this.channelRepository.countByUserId(userId);
     if (userChannelCount >= CHANNEL_USER_CHANNEL_LIMIT) {
       throw new ForbiddenException(
         `You can only create up to ${CHANNEL_USER_CHANNEL_LIMIT} channels`
@@ -31,43 +31,24 @@ export class ChannelsService {
     }
 
     // Check if channel handle already exists
-    const existingChannel = await prisma.channel.findUnique({
-      where: { handle: dto.handle },
-    });
+    const existingChannel = await this.channelRepository.findByHandle(dto.handle);
     if (existingChannel) {
       throw new ConflictException('Channel handle already taken');
     }
 
     // Create the channel
-    const channel = await prisma.channel.create({
-      data: {
-        handle: dto.handle,
-        name: dto.name,
-        description: dto.description,
-        user: { connect: { id: userId } },
-      },
+    const channel = await this.channelRepository.create({
+      handle: dto.handle,
+      name: dto.name,
+      description: dto.description,
+      user: { connect: { id: userId } },
     });
 
     return channel;
   }
 
   async findAllByUserId(userId: string): Promise<ChannelWithStats[]> {
-    const channels = await prisma.channel.findMany({
-      where: { userId },
-      include: {
-        _count: {
-          select: {
-            subscribers: true,
-            videos: true,
-          },
-        },
-        videos: {
-          select: {
-            viewCount: true,
-          },
-        },
-      },
-    });
+    const channels = await this.channelRepository.findByUserIdWithStats(userId);
 
     if (!channels || channels.length === 0) {
       throw new NotFoundException(CHANNEL_ERRORS.CHANNEL_NOT_FOUND);
@@ -83,41 +64,24 @@ export class ChannelsService {
   }
 
   async findByHandle(dto: ChannelHandleParamDto): Promise<ChannelWithStats> {
-    const channel = await prisma.channel.findUnique({
-      where: { handle: dto.handle },
-      include: {
-        _count: {
-          select: {
-            subscribers: true,
-            videos: true,
-          },
-        },
-      },
-    });
+    const channel = await this.channelRepository.findByHandleWithStats(dto.handle);
 
     if (!channel) {
       throw new NotFoundException(CHANNEL_ERRORS.CHANNEL_NOT_FOUND);
     }
 
-    const totalViews = await prisma.video.aggregate({
-      where: {
-        channelId: channel.id,
-      },
-      _sum: { viewCount: true },
-    });
+    const totalViews = await this.channelRepository.aggregateVideoViews(channel.id);
 
     return {
       ...channel,
-      totalViews: totalViews._sum.viewCount || 0,
+      totalViews,
       videoCount: channel._count.videos,
       subscriberCount: channel._count.subscribers,
     };
   }
 
   async updateChannel(channelId: string, dto: UpdateChannelDto, userId: string): Promise<Channel> {
-    const channel = await prisma.channel.findUnique({
-      where: { id: channelId },
-    });
+    const channel = await this.channelRepository.findById(channelId);
     if (!channel) {
       throw new NotFoundException(CHANNEL_ERRORS.CHANNEL_NOT_FOUND);
     }
@@ -125,28 +89,19 @@ export class ChannelsService {
       throw new ForbiddenException(CHANNEL_ERRORS.NOT_CHANNEL_OWNER);
     }
 
-    const updatedChannel = await prisma.channel.update({
-      where: { id: channelId },
-      data: {
-        ...dto,
-      },
-    });
+    const updatedChannel = await this.channelRepository.update(channelId, dto);
 
     return updatedChannel;
   }
 
   async deleteChannel(channelId: string, userId: string): Promise<void> {
-    const channel = await prisma.channel.findUnique({
-      where: { id: channelId, userId },
-    });
+    const channel = await this.channelRepository.findByIdAndUserId(channelId, userId);
 
     if (!channel) {
       throw new NotFoundException(CHANNEL_ERRORS.CHANNEL_NOT_FOUND);
     }
 
-    await prisma.channel.delete({
-      where: { id: channelId, userId },
-    });
+    await this.channelRepository.deleteByIdAndUserId(channelId, userId);
   }
 
   async updateAvatar(channelId: string, userId: string, avatarUrl: string): Promise<Channel> {
@@ -154,19 +109,14 @@ export class ChannelsService {
       throw new BadRequestException();
     }
 
-    const channel = await prisma.channel.findUnique({
-      where: { id: channelId, userId },
-    });
+    const channel = await this.channelRepository.findByIdAndUserId(channelId, userId);
 
     if (!channel) {
       throw new NotFoundException(CHANNEL_ERRORS.CHANNEL_NOT_FOUND);
     }
 
-    const updatedChannel = await prisma.channel.update({
-      where: { id: channelId, userId },
-      data: {
-        avatarUrl,
-      },
+    const updatedChannel = await this.channelRepository.updateByIdAndUserId(channelId, userId, {
+      avatarUrl,
     });
 
     return updatedChannel;

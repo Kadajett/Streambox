@@ -2,21 +2,34 @@ import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/co
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { randomUUID } from 'node:crypto';
-import { prisma } from '@streambox/database';
 import type { RegisterDto } from './dto/register.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { User } from '@prisma/client';
 import type { Response } from 'express';
 import { TokenBlacklistService } from './token-blacklist.service';
+import { UserRepository } from '../database';
 
 const TOKEN_EXPIRATION = { access: 15 * 60 * 1000, refresh: 7 * 24 * 60 * 60 * 1000 };
 const TOKEN_EXPIRATION_SECONDS = { access: 15 * 60, refresh: 7 * 24 * 60 * 60 };
+
+// Select fields for user responses (excludes passwordHash)
+const USER_SELECT = {
+  id: true,
+  email: true,
+  username: true,
+  displayName: true,
+  passwordHash: false,
+  avatarUrl: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly tokenBlacklist: TokenBlacklistService
+    private readonly tokenBlacklist: TokenBlacklistService,
+    private readonly userRepository: UserRepository
   ) {}
 
   async register(
@@ -24,11 +37,7 @@ export class AuthService {
     response: Response
   ): Promise<{ user: Omit<User, 'passwordHash'> }> {
     // 1. Check if user exists by email OR username
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email: dto.email }, { username: dto.username }],
-      },
-    });
+    const existingUser = await this.userRepository.findByEmailOrUsername(dto.email, dto.username);
 
     if (existingUser) {
       if (existingUser.email === dto.email) {
@@ -41,24 +50,15 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(dto.password, 10);
 
     // 3. Create user in database
-    const user = await prisma.user.create({
-      data: {
+    const user = await this.userRepository.createWithSelect(
+      {
         email: dto.email,
         username: dto.username,
         passwordHash,
         displayName: dto.displayName || dto.username,
       },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        displayName: true,
-        passwordHash: false,
-        avatarUrl: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+      USER_SELECT
+    );
 
     // 4. Generate JWT tokens
     const accessToken = this.generateAccessToken(user.id, user.email);
@@ -84,19 +84,7 @@ export class AuthService {
   }
 
   async getCurrentUser(userId: string): Promise<Omit<User, 'passwordHash'>> {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        displayName: true,
-        passwordHash: false,
-        avatarUrl: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const user = await this.userRepository.findByIdWithSelect(userId, USER_SELECT);
 
     if (!user) {
       throw new UnauthorizedException('User not found');
@@ -117,9 +105,7 @@ export class AuthService {
         throw new UnauthorizedException('Invalid token type');
       }
 
-      const user = await prisma.user.findUnique({
-        where: { id: payload.sub },
-      });
+      const user = await this.userRepository.findById(payload.sub);
 
       if (!user) {
         throw new UnauthorizedException('User not found');
@@ -153,9 +139,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: dto.email },
-    });
+    const user = await this.userRepository.findByEmail(dto.email);
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

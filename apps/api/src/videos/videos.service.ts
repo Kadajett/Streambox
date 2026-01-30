@@ -6,19 +6,22 @@ import {
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { prisma } from '@streambox/database';
 import { TRANSCODE_QUEUE } from './videos.constants';
 import { StorageService } from 'src/storage/storage.service';
 import { VIDEO_ERRORS, CHANNEL_ERRORS, VideoUploadStatusResponse } from '@streambox/shared-types';
 import type { Video } from '@prisma/client';
-import { CreateVideoDto, UpdateVideoDto, VideoTranscodingStatusResponseDto } from './dto';
+import { CreateVideoDto, UpdateVideoDto } from './dto';
 import { generateSlug, generateUniqueSlug } from 'src/utils/slug';
+import { ChannelRepository, VideoRepository, TranscodeJobRepository } from '../database';
 
 @Injectable()
 export class VideosService {
   constructor(
     @InjectQueue(TRANSCODE_QUEUE) private transcodeQueue: Queue,
-    private storage: StorageService
+    private storage: StorageService,
+    private readonly channelRepository: ChannelRepository,
+    private readonly videoRepository: VideoRepository,
+    private readonly transcodeJobRepository: TranscodeJobRepository
   ) {}
 
   async create(
@@ -27,9 +30,7 @@ export class VideosService {
     userId: string,
     filename: string
   ): Promise<Video> {
-    const channel = await prisma.channel.findUnique({
-      where: { id: channelId },
-    });
+    const channel = await this.channelRepository.findById(channelId);
 
     if (!channel) {
       throw new NotFoundException(CHANNEL_ERRORS.CHANNEL_NOT_FOUND);
@@ -42,21 +43,18 @@ export class VideosService {
     // Generate unique slug from title
     const baseSlug = generateSlug(dto.title);
     const slug = await generateUniqueSlug(baseSlug, async (s) => {
-      const existing = await prisma.video.findUnique({ where: { slug: s } });
+      const existing = await this.videoRepository.findBySlug(s);
       return existing !== null;
     });
 
-    const video = await prisma.video.create({
-      data: {
-        title: dto.title,
-        slug,
-        description: dto.description ?? null,
-        channelId: channel.id,
-        // @TODO: Generate actual URL later. filepath for local dev.
-        videoUrl: filename,
-        visibility: dto.visibility ?? 'private',
-        status: 'processing',
-      },
+    const video = await this.videoRepository.create({
+      title: dto.title,
+      slug,
+      description: dto.description ?? null,
+      channel: { connect: { id: channel.id } },
+      videoUrl: filename,
+      visibility: dto.visibility ?? 'private',
+      status: 'processing',
     });
 
     await this.transcodeQueue.add(TRANSCODE_QUEUE, {
@@ -86,9 +84,7 @@ export class VideosService {
     const pageSize = Math.min(options?.pageSize ?? 20, 100); // Cap at 100
     const skip = (page - 1) * pageSize;
 
-    const channel = await prisma.channel.findUnique({
-      where: { id: channelId },
-    });
+    const channel = await this.channelRepository.findById(channelId);
 
     if (!channel) {
       throw new NotFoundException(CHANNEL_ERRORS.CHANNEL_NOT_FOUND);
@@ -99,17 +95,8 @@ export class VideosService {
     }
 
     const [videos, total] = await Promise.all([
-      prisma.video.findMany({
-        where: { channelId: channel.id },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        skip,
-        take: pageSize,
-      }),
-      prisma.video.count({
-        where: { channelId: channel.id },
-      }),
+      this.videoRepository.findByChannelId(channel.id, { skip, take: pageSize }),
+      this.videoRepository.countByChannelId(channel.id),
     ]);
 
     return {
@@ -130,18 +117,7 @@ export class VideosService {
       throw new NotFoundException(VIDEO_ERRORS.VIDEO_NOT_FOUND);
     }
 
-    // Try to find by slug first, then by id
-    let video = await prisma.video.findUnique({
-      where: { slug: identifier },
-      include: { channel: true },
-    });
-
-    if (!video) {
-      video = await prisma.video.findUnique({
-        where: { id: identifier },
-        include: { channel: true },
-      });
-    }
+    const video = await this.videoRepository.findByIdOrSlugWithChannel(identifier);
 
     if (!video) {
       throw new NotFoundException(VIDEO_ERRORS.VIDEO_NOT_FOUND);
@@ -188,9 +164,7 @@ export class VideosService {
     const pageSize = Math.min(options?.pageSize ?? 20, 100); // Cap at 100
     const skip = (page - 1) * pageSize;
 
-    const channel = await prisma.channel.findUnique({
-      where: { id: channelId },
-    });
+    const channel = await this.channelRepository.findById(channelId);
 
     if (!channel) {
       throw new NotFoundException(CHANNEL_ERRORS.CHANNEL_NOT_FOUND);
@@ -198,31 +172,23 @@ export class VideosService {
 
     const isOwner = channel.userId === userId;
 
-    const whereClause = {
-      channelId: channel.id,
-      AND: isOwner
-        ? {}
-        : {
-            status: 'ready' as const,
-            moderation: 'approved' as const,
-            NOT: {
-              visibility: 'private' as const,
-            },
+    const whereClause = isOwner
+      ? {}
+      : {
+          status: 'ready' as const,
+          moderation: 'approved' as const,
+          NOT: {
+            visibility: 'private' as const,
           },
-    };
+        };
 
     const [videos, total] = await Promise.all([
-      prisma.video.findMany({
+      this.videoRepository.findByChannelId(channel.id, {
         where: whereClause,
-        orderBy: {
-          createdAt: 'desc',
-        },
         skip,
         take: pageSize,
       }),
-      prisma.video.count({
-        where: whereClause,
-      }),
+      this.videoRepository.countByChannelId(channel.id, whereClause),
     ]);
 
     return {
@@ -235,12 +201,7 @@ export class VideosService {
   }
 
   async update(videoId: string, data: UpdateVideoDto, userId: string): Promise<Video> {
-    const video = await prisma.video.findUnique({
-      where: { id: videoId },
-      include: {
-        channel: true,
-      },
-    });
+    const video = await this.videoRepository.findByIdWithChannel(videoId);
 
     if (!video) {
       throw new NotFoundException(VIDEO_ERRORS.VIDEO_NOT_FOUND);
@@ -250,21 +211,13 @@ export class VideosService {
       throw new ForbiddenException(VIDEO_ERRORS.NOT_VIDEO_OWNER);
     }
 
-    const updatedVideo = await prisma.video.update({
-      where: { id: video.id },
-      data,
-    });
+    const updatedVideo = await this.videoRepository.update(video.id, data);
 
     return updatedVideo;
   }
 
   async delete(videoId: string, userId: string): Promise<void> {
-    const video = await prisma.video.findUnique({
-      where: { id: videoId },
-      include: {
-        channel: true,
-      },
-    });
+    const video = await this.videoRepository.findByIdWithChannel(videoId);
 
     if (!video || !video.videoUrl) {
       throw new NotFoundException(VIDEO_ERRORS.VIDEO_NOT_FOUND);
@@ -274,9 +227,7 @@ export class VideosService {
       throw new ForbiddenException(VIDEO_ERRORS.NOT_VIDEO_OWNER);
     }
 
-    await prisma.video.delete({
-      where: { id: video.id },
-    });
+    await this.videoRepository.delete(video.id);
 
     // Delete associated files
     await this.storage.deleteVideoFiles(video.id, video.videoUrl);
@@ -285,12 +236,7 @@ export class VideosService {
   }
 
   async getStatus(videoId: string, userId: string): Promise<VideoUploadStatusResponse> {
-    const video = await prisma.video.findUnique({
-      where: { id: videoId },
-      include: {
-        channel: true,
-      },
-    });
+    const video = await this.videoRepository.findByIdWithChannel(videoId);
 
     if (!video) {
       throw new NotFoundException(VIDEO_ERRORS.VIDEO_NOT_FOUND);
@@ -300,14 +246,7 @@ export class VideosService {
       throw new ForbiddenException(VIDEO_ERRORS.NOT_VIDEO_OWNER);
     }
 
-    const transcodeJob = await prisma.transcodeJob.findFirst({
-      where: {
-        videoId: videoId,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const transcodeJob = await this.transcodeJobRepository.findLatestByVideoId(videoId);
 
     return {
       status: video.status,
@@ -320,15 +259,7 @@ export class VideosService {
     channelId: string,
     userId: string
   ): Promise<VideoUploadStatusResponse[]> {
-    const videos = await prisma.video.findMany({
-      where: {
-        channel: {
-          id: channelId,
-          userId,
-        },
-        status: 'processing',
-      },
-    });
+    const videos = await this.videoRepository.findProcessingByChannel(channelId, userId);
 
     if (videos.length === 0) {
       return [];
@@ -336,14 +267,7 @@ export class VideosService {
 
     // Batch query: get all transcodeJobs for these videos in one query
     const videoIds = videos.map((v) => v.id);
-    const transcodeJobs = await prisma.transcodeJob.findMany({
-      where: {
-        videoId: { in: videoIds },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const transcodeJobs = await this.transcodeJobRepository.findByVideoIds(videoIds);
 
     // Create a map of videoId -> most recent transcodeJob
     // Since results are ordered by createdAt desc, the first job for each video is the most recent

@@ -22,6 +22,7 @@ import { FeedModule } from './feed/feed.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 import { AllExceptionsFilter } from './filters';
+import { DatabaseModule } from './database';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AllExceptionsFilter } from './filters';
       isGlobal: true,
       envFilePath: '.env',
     }),
+    DatabaseModule,
     ThrottlerModule.forRoot({
       throttlers: [
         {
