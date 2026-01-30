@@ -12,19 +12,20 @@ export class AdminService {
   /**
    * Get all videos pending moderation
    */
-  async getModerationQueue(limit = 50, offset = 0) {
+  async getModerationQueue(page = 1, pageSize = 50) {
+    const skip = (page - 1) * pageSize;
     const [videos, total] = await Promise.all([
-      this.videoRepository.findPendingModeration({ skip: offset, take: limit }),
+      this.videoRepository.findPendingModeration({ skip, take: pageSize }),
       this.videoRepository.countPendingModeration(),
     ]);
 
     return {
       data: videos,
-      pagination: {
+      meta: {
+        page,
+        pageSize,
         total,
-        limit,
-        offset,
-        hasMore: offset + videos.length < total,
+        totalPages: Math.ceil(total / pageSize),
       },
     };
   }

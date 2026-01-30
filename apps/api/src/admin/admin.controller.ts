@@ -21,10 +21,10 @@ export class AdminController {
    * Get all videos pending moderation
    */
   @Get('moderation-queue')
-  async getModerationQueue(@Query('limit') limit?: string, @Query('offset') offset?: string) {
+  async getModerationQueue(@Query('page') page?: string, @Query('pageSize') pageSize?: string) {
     return this.adminService.getModerationQueue(
-      limit ? Number.parseInt(limit, 10) : 50,
-      offset ? Number.parseInt(offset, 10) : 0
+      page ? Number.parseInt(page, 10) : 1,
+      pageSize ? Number.parseInt(pageSize, 10) : 50
     );
   }
 
