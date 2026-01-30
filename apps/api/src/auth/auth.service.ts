@@ -1,17 +1,23 @@
 import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { randomUUID } from 'node:crypto';
 import { prisma } from '@streambox/database';
 import type { RegisterDto } from './dto/register.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { User } from '@prisma/client';
 import type { Response } from 'express';
+import { TokenBlacklistService } from './token-blacklist.service';
 
 const TOKEN_EXPIRATION = { access: 15 * 60 * 1000, refresh: 7 * 24 * 60 * 60 * 1000 };
+const TOKEN_EXPIRATION_SECONDS = { access: 15 * 60, refresh: 7 * 24 * 60 * 60 };
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly tokenBlacklist: TokenBlacklistService
+  ) {}
 
   async register(
     dto: RegisterDto,
@@ -186,20 +192,60 @@ export class AuthService {
   }
 
   async logout(userId: string, response: Response) {
+    // Get current tokens to blacklist them
+    const accessToken = response.req.cookies.accessToken;
+    const refreshToken = response.req.cookies.refreshToken;
+
+    // Blacklist both tokens if present
+    if (accessToken) {
+      try {
+        const payload = this.jwtService.decode(accessToken) as { jti?: string; exp?: number };
+        if (payload?.jti && payload?.exp) {
+          await this.tokenBlacklist.blacklist(payload.jti, payload.exp);
+        }
+      } catch {
+        // Token might be invalid, ignore
+      }
+    }
+
+    if (refreshToken) {
+      try {
+        const payload = this.jwtService.decode(refreshToken) as { jti?: string; exp?: number };
+        if (payload?.jti && payload?.exp) {
+          await this.tokenBlacklist.blacklist(payload.jti, payload.exp);
+        }
+      } catch {
+        // Token might be invalid, ignore
+      }
+    }
+
     response.clearCookie('refreshToken');
     response.clearCookie('accessToken');
-    // TODO: Implement token blacklisting with Redis if needed
-    await Promise.resolve();
+
     return { message: 'Logged out successfully', userId };
   }
 
+  /**
+   * Logout from all devices by invalidating all tokens for a user
+   */
+  async logoutAll(userId: string, response: Response) {
+    await this.tokenBlacklist.blacklistAllForUser(userId, TOKEN_EXPIRATION_SECONDS.refresh);
+
+    response.clearCookie('refreshToken');
+    response.clearCookie('accessToken');
+
+    return { message: 'Logged out from all devices', userId };
+  }
+
   private generateAccessToken(userId: string, email: string): string {
-    const payload = { sub: userId, email, type: 'access' };
+    const jti = randomUUID();
+    const payload = { sub: userId, email, type: 'access', jti };
     return this.jwtService.sign(payload, { expiresIn: '15m' });
   }
 
   private generateRefreshToken(userId: string): string {
-    const payload = { sub: userId, type: 'refresh' };
+    const jti = randomUUID();
+    const payload = { sub: userId, type: 'refresh', jti };
     return this.jwtService.sign(payload, { expiresIn: '7d' });
   }
 }

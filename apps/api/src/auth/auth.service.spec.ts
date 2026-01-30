@@ -20,6 +20,7 @@ import { prisma } from '@streambox/database';
 import bcrypt from 'bcrypt';
 import type { Response } from 'express';
 import { AuthService } from './auth.service';
+import type { TokenBlacklistService } from './token-blacklist.service';
 
 type PrismaMock = {
   user: {
@@ -28,6 +29,15 @@ type PrismaMock = {
     create: jest.Mock;
   };
 };
+
+function createMockTokenBlacklistService(): TokenBlacklistService {
+  return {
+    blacklist: jest.fn().mockResolvedValue(undefined),
+    isBlacklisted: jest.fn().mockResolvedValue(false),
+    blacklistAllForUser: jest.fn().mockResolvedValue(undefined),
+    isUserTokenInvalidated: jest.fn().mockResolvedValue(false),
+  } as unknown as TokenBlacklistService;
+}
 
 function createMockResponse(cookies?: Record<string, string>): Response {
   return {
@@ -41,7 +51,8 @@ function createMockResponse(cookies?: Record<string, string>): Response {
 
 describe('AuthService', () => {
   let service: AuthService;
-  let jwtService: Pick<JwtService, 'sign' | 'verify'>;
+  let jwtService: Pick<JwtService, 'sign' | 'verify' | 'decode'>;
+  let tokenBlacklist: TokenBlacklistService;
   let prismaMock: PrismaMock;
   let bcryptMock: { hash: jest.Mock; compare: jest.Mock };
 
@@ -51,9 +62,12 @@ describe('AuthService', () => {
     jwtService = {
       sign: jest.fn(),
       verify: jest.fn(),
+      decode: jest.fn(),
     };
 
-    service = new AuthService(jwtService as JwtService);
+    tokenBlacklist = createMockTokenBlacklistService();
+
+    service = new AuthService(jwtService as JwtService, tokenBlacklist);
 
     prismaMock = prisma as unknown as PrismaMock;
     prismaMock.user.findFirst.mockReset();

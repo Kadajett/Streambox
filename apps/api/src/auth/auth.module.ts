@@ -7,6 +7,7 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TokenRefreshInterceptor } from './interceptors';
+import { TokenBlacklistService } from './token-blacklist.service';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { TokenRefreshInterceptor } from './interceptors';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, TokenRefreshInterceptor],
-  exports: [JwtModule, PassportModule, TokenRefreshInterceptor],
+  providers: [AuthService, JwtStrategy, TokenRefreshInterceptor, TokenBlacklistService],
+  exports: [JwtModule, PassportModule, TokenRefreshInterceptor, TokenBlacklistService],
 })
 export class AuthModule {}
